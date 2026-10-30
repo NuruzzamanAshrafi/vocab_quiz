@@ -1,0 +1,1264 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Word Smart</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=DM+Sans:wght@400;600&display=swap"
+    rel="stylesheet">
+  <script>
+    try {
+      const savedTheme = localStorage.getItem("ws-theme");
+      const savedAccent = localStorage.getItem("ws-accent");
+      document.documentElement.dataset.theme = savedTheme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.dataset.accent = savedAccent === "green" ? "green" : "blue";
+    } catch (e) { document.documentElement.dataset.theme = "light"; }
+  </script>
+  <style>
+    :root {
+      --bg: #f3f6fa;
+      --surf: #fff;
+      --ink: #1d2938;
+      --mute: #697989;
+      --line: #dfe6ef;
+      --soft: #eaf0f6;
+      --v: #6c5ce7;
+      --t: #00a896;
+      --rose: #d95c63;
+      --amber: #c88721;
+      --mint: #38a87f;
+      --c: var(--v);
+      box-sizing: border-box;
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px)
+    }
+
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #141b24;
+      --surf: #1d2834;
+      --ink: #edf4fa;
+      --mute: #a3b2c0;
+      --line: #354351;
+      --soft: #263542;
+      --v: #8b7dff;
+      --t: #2ad4c0;
+      --rose: #ff8187;
+      --amber: #f2bf6e;
+      --mint: #70d2aa
+    }
+
+    :root[data-accent="green"] {
+      --bg: #f3f6f3;
+      --ink: #1d2b27;
+      --mute: #697873;
+      --line: #dfe7e2;
+      --soft: #eaf1ed;
+      --v: #167765;
+      --t: #536f9a
+    }
+
+    :root[data-theme="dark"][data-accent="green"] {
+      --bg: #141b19;
+      --surf: #1d2824;
+      --ink: #edf4f0;
+      --mute: #a0b0a9;
+      --line: #35443e;
+      --soft: #26342f;
+      --v: #70cbb2;
+      --t: #9ab8e6;
+      --rose: #ff8187;
+      --amber: #f2bf6e;
+      --mint: #70d2aa
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent
+    }
+
+    html {
+      scroll-padding-top: env(safe-area-inset-top, 0px);
+      background: var(--bg)
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 16px/1.5 "DM Sans", system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center
+    }
+
+    body[data-deck="ws2"] {
+      --c: var(--t)
+    }
+
+    .app {
+      width: 100%;
+      max-width: 480px;
+      padding: 16px 16px 96px
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 2px 0 14px
+    }
+
+    h1 {
+      font: 800 22px "Bricolage Grotesque", system-ui, sans-serif;
+      margin: 0;
+      letter-spacing: -.01em
+    }
+
+    .chip {
+      font-size: 13px;
+      font-weight: 600;
+      background: var(--surf);
+      border: 2px solid var(--line);
+      border-radius: 99px;
+      padding: 3px 11px
+    }
+
+    .seg {
+      display: flex;
+      gap: 8px
+    }
+
+    .pill {
+      flex: 1;
+      border: 2px solid var(--line);
+      background: var(--surf);
+      color: var(--ink);
+      border-radius: 14px;
+      padding: 10px 8px;
+      font: 600 15px "DM Sans", system-ui, sans-serif;
+      cursor: pointer
+    }
+
+    .pill.on {
+      border-color: var(--c);
+      background: var(--c);
+      color: #fff
+    }
+
+    .stats {
+      display: flex;
+      gap: 8px;
+      margin: 16px 0 10px
+    }
+
+    .stats div {
+      flex: 1;
+      background: var(--surf);
+      border: 2px solid var(--line);
+      border-radius: 14px;
+      padding: 8px 4px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--mute)
+    }
+
+    .stats b {
+      display: block;
+      font: 800 22px "Bricolage Grotesque", system-ui, sans-serif;
+      color: var(--c);
+      line-height: 1.1
+    }
+
+    .stats div:nth-child(2) b {
+      color: var(--amber)
+    }
+
+    .stats div:nth-child(3) b {
+      color: var(--mint)
+    }
+
+    .bar,
+    .stack {
+      height: 8px;
+      border-radius: 99px;
+      background: var(--line);
+      overflow: hidden;
+      display: flex
+    }
+
+    .prog {
+      margin: 10px 0
+    }
+
+    .pl {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--mute);
+      margin-bottom: 4px;
+      font-weight: 600
+    }
+
+    .bar i {
+      display: block;
+      height: 100%;
+      background: var(--c);
+      border-radius: 99px;
+      transition: width .3s
+    }
+
+    .stack i {
+      display: block;
+      height: 100%
+    }
+
+    .card {
+      position: relative;
+      margin: 16px 0;
+      min-height: 250px;
+      background: var(--surf);
+      border: 2px solid var(--line);
+      border-top: 8px solid var(--c);
+      border-radius: 22px;
+      padding: 34px 22px 26px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      cursor: pointer;
+      user-select: none
+    }
+
+    .word {
+      font: 800 38px/1.1 "Bricolage Grotesque", system-ui, sans-serif;
+      color: var(--c);
+      word-break: break-word
+    }
+
+    .def {
+      font-size: 19px;
+      line-height: 1.45
+    }
+
+    .hint {
+      font-size: 13px;
+      color: var(--mute);
+      margin-top: 14px
+    }
+
+    .tool {
+      position: absolute;
+      top: 10px;
+      border: 0;
+      background: none;
+      font-size: 20px;
+      color: var(--mute);
+      padding: 6px 8px;
+      cursor: pointer
+    }
+
+    .tool.l {
+      left: 6px
+    }
+
+    .tool.r {
+      right: 6px
+    }
+
+    .tool.on {
+      color: var(--amber)
+    }
+
+    .act {
+      display: flex;
+      gap: 8px
+    }
+
+    .btn {
+      flex: 1;
+      border: 0;
+      border-radius: 14px;
+      padding: 13px 6px;
+      font: 600 15px "DM Sans", system-ui, sans-serif;
+      color: #fff;
+      background: var(--c);
+      cursor: pointer
+    }
+
+    .btn.no {
+      background: var(--rose)
+    }
+
+    .btn.ok {
+      background: var(--mint);
+      color: #0d3b2a
+    }
+
+    .btn.gh {
+      background: var(--surf);
+      color: var(--ink);
+      border: 2px solid var(--line)
+    }
+
+    .btn:disabled {
+      opacity: .35
+    }
+
+    .opt {
+      display: block;
+      width: 100%;
+      text-align: left;
+      margin: 8px 0;
+      padding: 13px 14px;
+      border-radius: 14px;
+      border: 2px solid var(--line);
+      background: var(--surf);
+      color: var(--ink);
+      font: 15px/1.4 "DM Sans", system-ui, sans-serif;
+      cursor: pointer
+    }
+
+    .opt.ok {
+      border-color: var(--mint);
+      background: color-mix(in srgb, var(--mint) 20%, var(--surf))
+    }
+
+    .opt.bad {
+      border-color: var(--rose);
+      background: color-mix(in srgb, var(--rose) 16%, var(--surf))
+    }
+
+    .q {
+      text-align: center;
+      margin: 22px 0 10px
+    }
+
+    .done {
+      text-align: center;
+      padding: 34px 8px
+    }
+
+    .done p {
+      color: var(--mute)
+    }
+
+    .sec {
+      margin: 22px 0 8px;
+      font: 800 16px "Bricolage Grotesque", system-ui, sans-serif
+    }
+
+    .box {
+      background: var(--surf);
+      border: 2px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      margin: 8px 0
+    }
+
+    .box .meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--mute);
+      margin-top: 6px
+    }
+
+    .week {
+      display: flex;
+      gap: 6px;
+      align-items: flex-end;
+      height: 80px
+    }
+
+    .week div {
+      flex: 1;
+      text-align: center;
+      font-size: 11px;
+      color: var(--mute);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      height: 100%
+    }
+
+    .week i {
+      display: block;
+      background: var(--c);
+      border-radius: 6px 6px 2px 2px;
+      min-height: 3px;
+      margin-bottom: 3px
+    }
+
+    input[type=search],
+    textarea,
+    select {
+      width: 100%;
+      border-radius: 12px;
+      border: 2px solid var(--line);
+      background: var(--surf);
+      color: var(--ink);
+      padding: 10px;
+      font: 15px "DM Sans", system-ui, sans-serif
+    }
+
+    textarea {
+      min-height: 90px;
+      margin: 8px 0
+    }
+
+    .chips {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      margin: 10px 0
+    }
+
+    .chips button {
+      flex: none;
+      border: 2px solid var(--line);
+      background: var(--surf);
+      color: var(--ink);
+      border-radius: 99px;
+      padding: 5px 13px;
+      font: 600 13px "DM Sans", system-ui, sans-serif;
+      cursor: pointer
+    }
+
+    .chips button.on {
+      background: var(--c);
+      border-color: var(--c);
+      color: #fff
+    }
+
+    .wr {
+      padding: 11px 4px;
+      border-bottom: 1px solid var(--line);
+      cursor: pointer
+    }
+
+    .wt {
+      display: flex;
+      justify-content: space-between;
+      align-items: center
+    }
+
+    .wt b {
+      font-size: 17px
+    }
+
+    .wd {
+      color: var(--mute);
+      font-size: 14px
+    }
+
+    .wr.open .wd {
+      color: var(--ink)
+    }
+
+    .wr .act {
+      margin-top: 10px
+    }
+
+    .wr .btn {
+      padding: 9px 4px;
+      font-size: 14px
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--line)
+    }
+
+    .dot.learning {
+      background: var(--amber)
+    }
+
+    .dot.learned {
+      background: var(--mint)
+    }
+
+    .link {
+      background: none;
+      border: 0;
+      color: var(--c);
+      font: 600 14px "DM Sans", system-ui, sans-serif;
+      padding: 8px 0;
+      cursor: pointer
+    }
+
+    .note {
+      font-size: 13px;
+      color: var(--mute)
+    }
+
+    nav {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--surf);
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: center;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      z-index: 5
+    }
+
+    nav div {
+      display: flex;
+      width: 100%;
+      max-width: 480px
+    }
+
+    nav button {
+      flex: 1;
+      border: 0;
+      background: none;
+      color: var(--mute);
+      padding: 13px 4px 11px;
+      font: 600 14px "DM Sans", system-ui, sans-serif;
+      cursor: pointer;
+      border-top: 3px solid transparent
+    }
+
+    nav button.on {
+      color: var(--c);
+      border-top-color: var(--c)
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--c);
+      outline-offset: 2px
+    }
+
+    :root[data-theme="light"] {
+      color-scheme: light;
+    }
+
+    html {
+      color-scheme: light;
+    }
+
+    body {
+      background-image: linear-gradient(145deg, color-mix(in srgb, var(--c) 5%, var(--bg)), var(--bg) 46%);
+      transition: background-color .2s, color .2s
+    }
+
+    .app {
+      max-width: 720px;
+      padding: 24px 24px 108px;
+    }
+
+    header {
+      margin: 0 0 24px;
+    }
+
+    h1 {
+      font-size: 25px;
+    }
+
+    .header-tools {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .chip {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 6px 10px;
+    }
+
+    .theme-toggle {
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: var(--surf);
+      color: var(--ink);
+      font: 20px/1 "DM Sans", sans-serif;
+      cursor: pointer;
+      transition: background .18s, border-color .18s, transform .18s
+    }
+
+    .theme-toggle:hover {
+      background: var(--soft);
+      border-color: var(--c);
+      transform: translateY(-1px);
+    }
+
+    .seg {
+      gap: 4px;
+      padding: 4px;
+      border-radius: 13px;
+      background: var(--soft);
+    }
+
+    .pill {
+      border: 0;
+      border-radius: 9px;
+      padding: 10px 12px;
+      background: transparent;
+    }
+
+    .pill.on {
+      background: var(--surf);
+      color: var(--c);
+      box-shadow: 0 1px 4px #14251d18;
+    }
+
+    .stats {
+      gap: 0;
+      margin: 24px 0 18px;
+      padding: 14px 0;
+      border-block: 1px solid var(--line);
+    }
+
+    .stats div {
+      background: transparent;
+      border: 0;
+      border-right: 1px solid var(--line);
+      border-radius: 0;
+      padding: 4px 10px;
+    }
+
+    .stats div:last-child {
+      border-right: 0;
+    }
+
+    .stats b {
+      font-size: 25px;
+    }
+
+    .stats div:nth-child(2) b {
+      color: var(--amber);
+    }
+
+    .stats div:nth-child(3) b {
+      color: var(--mint);
+    }
+
+    .prog {
+      margin: 16px 0;
+    }
+
+    .bar,
+    .stack {
+      height: 6px;
+    }
+
+    .card {
+      min-height: 280px;
+      margin: 22px 0 16px;
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--c);
+      border-radius: 17px;
+      padding: 38px 26px 30px;
+      box-shadow: 0 12px 32px #14251d0a
+    }
+
+    .word {
+      font-size: 42px;
+    }
+
+    .def {
+      max-width: 520px;
+    }
+
+    .btn {
+      border-radius: 10px;
+      transition: filter .16s, transform .16s;
+    }
+
+    .btn:hover:not(:disabled) {
+      filter: brightness(1.05);
+      transform: translateY(-1px);
+    }
+
+    .btn.ok {
+      color: #102d24;
+    }
+
+    .btn.gh {
+      border: 1px solid var(--line);
+    }
+
+    .opt {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      transition: border-color .16s, background .16s;
+    }
+
+    /* No coloured outline/hover on quiz choices (also stops sticky hover on touch) */
+    .opt:focus,
+    .opt:focus-visible,
+    .opt:active {
+      outline: none;
+    }
+
+    /* Result colours always win, even if the button is hovered/focused */
+    .opt.ok,
+    .opt.ok:hover,
+    .opt.ok:focus,
+    .opt.ok:active {
+      border-color: var(--mint);
+      background: color-mix(in srgb, var(--mint) 20%, var(--surf));
+    }
+
+    .opt.bad,
+    .opt.bad:hover,
+    .opt.bad:focus,
+    .opt.bad:active {
+      border-color: var(--rose);
+      background: color-mix(in srgb, var(--rose) 16%, var(--surf));
+    }
+
+    .box {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      margin: 10px 0;
+    }
+
+    .sec {
+      margin: 24px 0 8px;
+    }
+
+    input[type=search],
+    textarea,
+    select {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+
+    .chips button {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .wr {
+      padding: 13px 8px;
+      transition: background .15s;
+    }
+
+    .wr:hover {
+      background: color-mix(in srgb, var(--c) 5%, var(--bg));
+    }
+
+    nav {
+      background: color-mix(in srgb, var(--surf) 94%, transparent);
+      backdrop-filter: blur(14px);
+    }
+
+    nav div {
+      max-width: 720px;
+    }
+
+    nav button {
+      border-top: 0;
+      border-bottom: 2px solid transparent;
+      padding: 13px 4px 11px;
+    }
+
+    nav button.on {
+      border-bottom-color: var(--c);
+      border-top-color: transparent;
+    }
+
+    @media (max-width: 520px) {
+      .app {
+        padding: 18px 16px 98px;
+      }
+
+      header {
+        margin-bottom: 18px;
+      }
+
+      .card {
+        min-height: 240px;
+        padding-inline: 18px;
+      }
+
+      .word {
+        font-size: 36px;
+      }
+
+      .stats div {
+        padding-inline: 5px;
+        font-size: 11px;
+      }
+
+      .stats b {
+        font-size: 22px;
+      }
+
+      .appearance-row {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+      }
+    }
+
+    .appearance-box {
+      display: grid;
+      gap: 14px;
+    }
+
+    .appearance-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .appearance-label {
+      min-width: 92px;
+      font-weight: 600;
+    }
+
+    .tint-options,
+    .mode-options {
+      display: flex;
+      gap: 6px;
+    }
+
+    .tint-choice,
+    .mode-choice {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 38px;
+      padding: 6px 11px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--surf);
+      color: var(--ink);
+      font: 600 13px "DM Sans", sans-serif;
+      cursor: pointer
+    }
+
+    .tint-choice[aria-pressed="true"],
+    .mode-choice[aria-pressed="true"] {
+      border-color: var(--c);
+      background: var(--soft);
+      color: var(--c)
+    }
+
+    .swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .swatch.blue {
+      background: #6c5ce7;
+    }
+
+    .swatch.green {
+      background: #167765;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#f3f6fa" id="theme-color-meta">
+  <link rel="icon" href="icon-192.png">
+</head>
+
+<body data-deck="ws1">
+  <div class="app">
+    <header>
+      <h1>Word Smart</h1>
+      <div class="header-tools">
+        <span class="chip" id="streak"></span>
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to dark theme"
+          title="Switch to dark theme"><span id="themeIcon" aria-hidden="true">☾</span></button>
+      </div>
+    </header>
+    <div class="seg" id="decks"></div>
+    <div id="main"></div>
+  </div>
+  <nav>
+    <div id="tabs"></div>
+  </nav>
+  <script>
+    const D = {
+      ws1: [["abase", "to humiliate"], ["abash", "to embarrass"], ["abate", "to reduce"], ["abdicate", "to step down from a position of power or responsibility"], ["aberration", "something not typical"], ["abet", "to support or encourage someone, especially someone who has done something wrong"], ["abeyance", "suspension"], ["abhor", "to hate"], ["abject", "hopeless"], ["abjure", "to refrain from"], ["abnegate", "to reject"], ["abomination", "extreme hatred"], ["aboriginal", "native"], ["abortive", "unsuccessful"], ["abound", "to be very numerous"], ["abridge", "to shorten"], ["abrogate", "to nullify"], ["absolute", "total"], ["absolve", "to free from blame"], ["abstinent", "voluntarily not doing something"], ["abstract", "theoretical"], ["abstruse", "difficult to understand"], ["abysmal", "extremely hopeless; bottomless"], ["accede", "to give in"], ["accentuate", "to emphasize"], ["access", "the right or ability to approach, enter or use"], ["acclaim", "to praise publicly and enthusiastically"], ["accolade", "an honor"], ["accord", "to agree"], ["accost", "to approach and speak to someone"], ["accouterments", "personal clothing, accessories or equipment"], ["accrue", "to accumulate over time"], ["acerbic", "bitter; sour; severe"], ["acquiesce", "to comply passively"], ["acquisitive", "greedy"], ["acquit", "to find not guilty"], ["acrid", "harsh"], ["acrimonious", "bitter"], ["acronym", "a word made up of the initials of other words"], ["acumen", "mental sharpness"], ["acute", "sharp"], ["ad-lib", "to improvise"], ["adage", "a proverb"], ["adamant", "stubborn"], ["address", "to direct one's attention to"], ["adduce", "to bring forward as an example or as proof"], ["adherent", "supporter"], ["adjourn", "to postpone"], ["adjunct", "something added to or connected with something else"], ["admonish", "to warn"], ["adroit", "skillful"], ["advent", "arrival"], ["adventitious", "accidental"], ["advocate", "a person who argues in favor of a position"], ["affidavit", "a sworn written statement made before an official"], ["affiliate", "to become closely associated with"], ["affliction", "misery"], ["afford", "to supply"], ["affront", "a deliberate act of disrespect"], ["aftermath", "consequence"], ["aggrandize", "to exaggerate"], ["aggrieve", "to mistreat"], ["aghast", "terrified"], ["alacrity", "cheerful promptness"], ["alchemy", "a seemingly magical process of transformation"], ["alienate", "to estrange"], ["allege", "to assert without proof"], ["allegiance", "loyalty"], ["allegory", "a story in which the characters are symbols with moral or spiritual meanings"], ["alleviate", "to relieve"], ["allocate", "to distribute"], ["alloy", "a combination, usually of metals"], ["allusion", "an indirect reference"], ["aloof", "uninvolved"], ["altruism", "devotion to the interest of others"], ["ambience", "atmosphere"], ["ambiguous", "unclear in meaning"], ["ambivalent", "undecided"], ["ameliorate", "to make better"], ["amenable", "obedient"], ["amenity", "attractive or comfortable feature"], ["amiable", "friendly"], ["amnesty", "an official pardon for a group of people who have violated a law or policy"], ["amoral", "lacking a sense of right and wrong"], ["amorous", "in love in a sexual way"], ["amorphous", "shapeless"], ["anachronism", "something out of place in time or history"], ["analogy", "a comparison"], ["anarchy", "disorder"], ["anecdote", "a short account of a humorous or revealing incident"], ["anguish", "agonizing physical or mental pain"], ["animosity", "ill will"], ["anomaly", "irregularity"], ["antecedent", "something that provides a model for something that came after it"], ["antipathy", "dislike"], ["antithesis", "the direct opposite"], ["apartheid", "the abhorrent policy of racial segregation and oppression in South Africa"], ["apathy", "lack of interest"], ["aphorism", "proverb"], ["apocalypse", "revelation"], ["apocryphal", "of dubious authenticity"], ["apotheosis", "the perfect example of something"], ["appease", "to pacify by giving in to"], ["appreciate", "to increase in value"], ["apprehensive", "anxious"], ["approbation", "approval; praise"], ["appropriate", "to take without permission; to set aside for a particular use"], ["aptitude", "capacity for learning"], ["arbiter", "a judge"], ["arbitrary", "random"], ["arcane", "known only to a select few"], ["archaic", "ancient"], ["archetype", "an original model or pattern"], ["ardent", "passionate"], ["arduous", "difficult"], ["aristocratic", "noble birth; snobbish"], ["artful", "dishonest; crafty"], ["artifice", "a clever trick"], ["ascendancy", "domination"], ["ascetic", "practicing self-denial"], ["assiduous", "hardworking"], ["assimilate", "to absorb"], ["assuage", "to soothe"], ["astute", "keen in judgement"], ["attrition", "gradual wearing away, weakening or loss"], ["audacity", "boldness"], ["augment", "to increase"], ["auspicious", "favorable"], ["austere", "unadorned"], ["autocratic", "extremely bossy"], ["autonomous", "acting independently"], ["avarice", "excessive love of riches"], ["avow", "to declare boldly"], ["avuncular", "like a nice uncle"], ["awry", "off course; twisted to one side"], ["axiom", "a widely accepted saying"], ["banal", "unoriginal"], ["bane", "cause of harm; poison"], ["bastion", "fortified place"], ["beget", "to lead to"], ["belabor", "to go over repeatedly or to an absurd extent"], ["beleaguer", "to harass; crowd"], ["belie", "to contradict"], ["belittle", "to make seem little"], ["belligerent", "quarrelsome"], ["bemused", "confused; bewildered"], ["benefactor", "one who provides help in the form of a gift or donation"], ["benevolent", "generous"], ["benign", "not harmful"], ["bequest", "something left to someone in a will"], ["bereaved", "left desolate, through death"], ["beset", "to harass; to surround"], ["blasphemy", "an insult to something held sacred"], ["blatant", "offensively noisy; glaring"], ["blithe", "carefree; cheerful"], ["bourgeois", "middle class; conventional"], ["bovine", "cowlike"], ["brevity", "briefness"], ["broach", "to open up a delicate subject for discussion"], ["bucolic", "countrylike"], ["bureaucracy", "a system of government administration consisting many offices, especially one run according to inflexible and inefficient rules"], ["burgeon", "to expand; to flourish"], ["burlesque", "a ludicrous, mocking or exaggerated imitation"], ["cacophony", "harsh-sounding mixture of words, voices or sounds"], ["cadence", "the rise and fall of sounds"], ["cajole", "to persuade someone to do something he or she doesn't want to do"], ["callow", "immature"], ["candor", "sincere honesty"], ["capitalism", "an economic system in which businesses are owned by private citizens"], ["capitulate", "to surrender"], ["capricious", "fickle"], ["caricature", "a portrait or description that is purposely distorted or exaggerated to prove some about its subject"], ["castigate", "to criticize severely"], ["catalyst", "anyone or anything that makes something happen without being directly in it"], ["categorical", "unconditional"], ["catharsis", "purification that brings emotional relief or renewal"], ["catholic", "embracing everything"], ["caustic", "corrosive"], ["celibacy", "abstinence from sex"], ["censure", "to condemn severely for doing something bad"], ["cerebral", "brainy"], ["chagrin", "humiliation"], ["charisma", "a magical-seeming ability to attract followers or inspire loyalty"], ["charlatan", "fraud"], ["chasm", "a deep, gaping hole"], ["chastise", "to discipline"], ["chicanery", "deceitfulness, especially legal or political"], ["chimera", "a foolish fancy"], ["choleric", "hot-tempered"], ["chronic", "lasting a long time"], ["chronicle", "a record of events in order of time"], ["circuitous", "roundabout"], ["circumlocution", "an indirect expression"], ["circumscribe", "to restrict"], ["circumspect", "cautious"], ["circumvent", "to frustrate as though by surrounding"], ["civil", "polite"], ["clemency", "forgiveness; mildness"], ["cliche", "an overused saying or idea"], ["clique", "an exclusive group bound together by some shared quality or interest"], ["coalesce", "to unite"], ["coerce", "to force someone to do or not to do something"], ["cogent", "powerfully convincing"], ["cognitive", "dealing with how we know the world around us through our senses"], ["cognizant", "aware; conscious"], ["coherent", "holding together; making sense"], ["colloquial", "informal in language"], ["collusion", "secret cooperation"], ["commensurate", "proportionate; equal"], ["compelling", "forceful"], ["compendium", "a summary"], ["complacent", "overly pleased with oneself"], ["complement", "to be the perfect counterpart"], ["complicity", "participation in wrongdoing"], ["comprehensive", "including everything"], ["comprise", "to consist of"], ["conciliatory", "attempting to resolve a dispute through goodwill"], ["concise", "succinct"], ["concord", "agreement"], ["concurrent", "happening at the same time"], ["condescend", "to stoop down to someone's level"], ["condone", "to permit to happen"], ["conducive", "promoting"], ["confluence", "the place where the river begin to flow together"], ["congenial", "pleasant"], ["congenital", "a trait or condition acquired at birth by nature"], ["conjecture", "to guess"], ["conjure", "to summon or bring into being as if by magic"], ["connoisseur", "an expert, particularly in matters of art or taste"], ["consecrate", "to make or declare sacred"], ["consensus", "general agreement"], ["consonant", "in agreement"], ["construe", "to interpret"], ["consummate", "to complete; supremely skillful"], ["contentious", "quarrelsome"], ["contiguous", "side by side"], ["contingent", "dependent; possible"], ["contrite", "admitting guilt"], ["contrived", "artificial"], ["conventional", "common"], ["convivial", "festive"], ["copious", "abundant"], ["corollary", "a natural consequence"], ["corroborate", "to back up with evidence"], ["cosmopolitan", "at home in many places or situations"], ["countenance", "facial expression"], ["coup", "a brilliant victory or accomplishment"], ["covenant", "a solemn agreement"], ["covert", "hidden"], ["covet", "to wish for enviously"], ["credulous", "gullible"], ["criterion", "basis for judgment"], ["cryptic", "mysterious"], ["culinary", "relating to cooking or the kitchen"], ["culminate", "to reach full effect"], ["culpable", "guilty"], ["cursory", "superficial"], ["curtail", "to shorten"], ["cynic", "one who believes humans are motivated only by selfishness"], ["daunt", "to intimidate"], ["dearth", "scarcity"], ["debacle", "overwhelming defeat"], ["debauchery", "excessive intemperance"], ["debilitate", "to weaken"], ["decadent", "decaying in morals"], ["decimate", "to kill or destroy a large part of"], ["decorous", "orderly"], ["deduce", "to conclude from the evidence"], ["defame", "to ruin the good name of"], ["deference", "submission to another's will"], ["definitive", "conclusive"], ["degenerate", "to deteriorate"], ["deleterious", "harmful"], ["delineate", "to describe accurately"], ["delude", "to deceive"], ["deluge", "a flood"], ["demagogue", "a leader of the people who manipulates the public"], ["denizen", "inhabitant"], ["depravity", "extreme wickedness or corruption"], ["deprecate", "to express disapproval of"], ["deride", "to make fun of"], ["derogatory", "degrading"], ["desiccate", "to dry out"], ["despondent", "extremely depressed"], ["despot", "an absolute ruler"], ["destitute", "utterly lacking"], ["desultory", "without a plan or purpose"], ["dialectical", "approaching truth through discussions"], ["dictum", "a proverb"], ["didactic", "morally instructive"], ["diffident", "lacking in self-confidence"], ["digress", "to stray from the main subject"], ["dilettante", "someone with superficial knowledge of the arts"], ["discern", "to perceive clearly"], ["discreet", "judiciously reserved"], ["discrete", "distinct"], ["discriminate", "to differentiate"], ["disdain", "arrogant scorn"], ["disinterested", "unbiased"], ["disparage", "to belittle"], ["disparate", "different"], ["disseminate", "to scatter"], ["dissipate", "to thin out, drift away, or dissolve"], ["dissolution", "the breaking up or dissolving of something into parts"], ["distend", "to extend greatly"], ["distinguish", "to tell apart"], ["docile", "easily taught"], ["doctrinaire", "dogmatic"], ["dogmatic", "arrogantly assertive of unproven ideas"], ["domestic", "having to do with the household or family"], ["dormant", "inactive"], ["dubious", "uncertain"], ["duplicity", "the act of being two-faced"], ["ebullient", "bubbling with excitement"], ["eccentric", "not conventional"], ["eclectic", "drawn from many sources"], ["edify", "to instruct, especially in moral or religious matters"], ["efface", "to rub away the features of"], ["effusion", "a pouring of"], ["egalitarian", "believing in the social and economic equality of people"], ["egocentric", "selfish"], ["egregious", "extremely bad"], ["elicit", "to call forth"], ["elliptical", "obscure"], ["elusive", "hard to pin down"], ["emigrate", "to move to a new country"], ["eminent", "outstanding"], ["empirical", "relying on experience or observation"], ["emulate", "to strive to equal or excel, usually through imitation"], ["encroach", "to make gradual inroads into"], ["endemic", "native"], ["enervate", "to weaken gradually"], ["enfranchise", "to grant the privileges of citizenship, especially the right to vote"], ["engender", "to cause"], ["enigma", "a mystery"], ["enormity", "extreme evil"], ["ephemeral", "lasting a very short time"], ["epigram", "a brief and usually witty or satirical saying"], ["epitome", "a brief summary that captures the meaning of the whole"], ["equanimity", "calm"], ["equitable", "fair"], ["equivocal", "capable of being interpreted in more than one way"], ["erudite", "scholarly"], ["esoteric", "hard to understand"], ["espouse", "to support"], ["ethereal", "heavenly"], ["euphemism", "a pleasant expression used in place of an unpleasant one"], ["evanescent", "happening for only a brief period"], ["exacerbate", "to make worse"], ["exacting", "extremely demanding"], ["exalt", "to glorify"], ["exasperate", "to annoy"], ["exemplify", "to serve as an example"], ["exhaustive", "thorough"], ["exhort", "to urge strongly"], ["exigency", "an emergency"], ["existential", "the thought that human beings are responsible for their own actions but is otherwise too complicated to summarize"], ["exonerate", "to free from blame"], ["expatriate", "to move away from one's native land"], ["expedient", "practical"], ["expedite", "to speed up or ease the progress of"], ["explicit", "clearly and directly expressed"], ["extol", "to praise"], ["extraneous", "unnecessary"], ["extrapolate", "to project or deduce from something known"], ["extricate", "to free from difficulty"], ["extrovert", "an open, outgoing person"], ["exult", "to rejoice"], ["fabrication", "a lie"], ["facetious", "humorous"], ["facile", "superficial; fluent"], ["faction", "a small group within a larger group, united around some cause"], ["farcical", "absurd"], ["fastidious", "meticulous"], ["fatalist", "someone who believes that future events are already determined and that humans are powerless to change them"], ["fatuous", "foolish"], ["fauna", "animals"], ["fecund", "productive"], ["felicity", "happiness"], ["fervor", "ardor"], ["fetter", "to restrain"], ["fidelity", "loyalty"], ["figurative", "metaphorical"], ["finesse", "subtlety"], ["flagrant", "scandalous, obvious"], ["flaunt", "to brag"], ["flout", "to disregard something out of disrespect"], ["foible", "a minor character flaw"], ["foment", "to stir up"], ["forbear", "to refrain from"], ["forgo", "to do without"], ["forsake", "to abandon"], ["fortuitous", "accidental"], ["founder", "to collapse"], ["fraternal", "like brothers"], ["frenetic", "fast and energetic in a rather wild and uncontrolled way"], ["frugal", "economical"], ["furtive", "secretive"], ["futile", "useless; hopeless"], ["garrulous", "talkative"], ["genre", "a type, especially of art or writing"], ["genteel", "refined"], ["gesticulate", "to make gestures, especially when speaking or in place of speaking"], ["glut", "surplus"], ["grandiloquent", "using a lot of big, fancy words in an attempt to sound impressive"], ["grandiose", "absurdly exaggerated"], ["gratuitous", "uncalled for"], ["gravity", "seriousness"], ["gregarious", "sociable"], ["guile", "duplicity"], ["hackneyed", "overused"], ["hapless", "unlucky"], ["harbinger", "a signal of"], ["hedonism", "to chase after pleasure as a way of life"], ["hegemony", "leadership, especially of one nation over another"], ["heresy", "any belief that is strongly opposed to established beliefs"], ["hermetic", "unable to be affected by external influence"], ["heyday", "golden age"], ["hiatus", "a break or interruption, often from work"], ["hierarchy", "an organization based on rank or degree"], ["histrionic", "overly dramatic"], ["homily", "a sermon"], ["homogeneous", "made entirely of one thing"], ["husbandry", "thrifty management of resources"], ["hyperbole", "exaggeration"], ["hypothetical", "uncertain"], ["iconoclast", "one who attacks popular beliefs or institutions"], ["ideology", "a system of social or political ideas"], ["idiosyncrasy", "an eccentricity"], ["idyllic", "charming in a rustic way"], ["ignominy", "deep disgrace"], ["illicit", "illegal"], ["imminent", "just about to happen"], ["immutable", "unchangeable"], ["impartial", "unbiased"], ["impeccable", "flawless"], ["imperial", "like an emperor or an empire"], ["impervious", "impenetrable"], ["impetuous", "extremely impatient"], ["implement", "to carry out"], ["impotent", "powerless"], ["impugn", "to attack, especially to attack the truth or integrity of something"], ["inane", "silly"], ["inaugurate", "to induct formally into office"], ["incandescent", "brilliant"], ["incantation", "a chant"], ["incense", "to make very angry"], ["incessant", "unceasing"], ["incipient", "emerging"], ["incisive", "cutting right to the heart of the matter"], ["incongruous", "not consistent"], ["incorrigible", "incapable of being reformed"], ["increment", "one in a series of increases"], ["indifferent", "not caring one way or the other"], ["indigenous", "native"], ["indigent", "poor"], ["indignant", "angry, especially as a result of something unjust or unworthy"], ["indolent", "lazy"], ["indulgent", "yielding to desire"], ["ineffable", "incapable of being expressed or described"], ["inept", "clumsy"], ["inert", "inactive"], ["inexorable", "inevitable"], ["infamous", "having an extremely bad reputation"], ["infatuated", "foolishly passionate or attracted"], ["infer", "to conclude"], ["infinitesimal", "very very small"], ["ingenuous", "charmingly naive"], ["inherent", "part of the essential nature of something"], ["injunction", "a command or order, especially a court order"], ["innate", "existing since birth"], ["innocuous", "harmless; banal"], ["inordinate", "excessive; unreasonable"], ["insatiable", "impossible to satisfy"], ["insidious", "sneaky"], ["insinuate", "to hint"], ["insipid", "dull"], ["insolent", "arrogant"], ["instigate", "to provoke"], ["insular", "isolated"], ["insurgent", "a rebel against a government"], ["integral", "essential"], ["intractable", "disobedient"], ["intransigent", "stubborn"], ["intrinsic", "inherent"], ["introspective", "tending to think about oneself"], ["inundate", "to flood"], ["invective", "insulting or abusive speech"], ["inveterate", "habitual"], ["irascible", "easily angered or provoked"], ["ironic", "meaning the opposite of what you seem to say"], ["irrevocable", "irreversible"], ["itinerant", "moving from place to place"], ["judicious", "exercising sound judgment"], ["juxtapose", "to place side by side"], ["kinetic", "having to do with motion"], ["labyrinth", "a maze"], ["laconic", "using few words, especially to the points of seeming rude"], ["lament", "to mourn"], ["lampoon", "to mock"], ["languish", "to become weak or depressed"], ["largess", "generosity"], ["latent", "present but not visible"], ["laud", "to praise"], ["legacy", "something handed down from the past"], ["lethargy", "sluggishness"], ["levity", "lightness"], ["libel", "a written or published falsehood that injures the reputation of someone"], ["litigate", "to try in court"], ["loquacious", "talking a lot or too much"], ["lucid", "clear"], ["lugubrious", "exaggeratedly mournful"], ["luminous", "glowing"], ["machination", "scheming activity for an evil purpose"], ["magnanimous", "forgiving"], ["magnate", "a rich, powerful, or very successful business person"], ["malaise", "a feeling of depression, uneasiness"], ["malfeasance", "an illegal act, especially by a public official"], ["malinger", "to pretend to be sick to avoid doing work"], ["malleable", "easy to shape or bend"], ["mandate", "a command or authorization to do something"], ["manifest", "evident"], ["manifesto", "a public declaration of beliefs or principles, usually political ones"], ["marshal", "to arrange in order for the purpose of doing something"], ["martial", "warlike"], ["martyr", "one who makes a show of suffering in order to arouse sympathy"], ["matriculate", "to enroll, especially at a college"], ["maudlin", "silly and overly sentimental"], ["maverick", "a rebel"], ["maxim", "an old saying"], ["mediate", "to help settle differences"], ["mellifluous", "sweetly flowing"], ["mendacious", "dishonest"], ["mendicant", "a beggar"], ["mentor", "a teacher, tutor, counselor or coach"], ["mercenary", "someone who will do anything for money"], ["mercurial", "rapidly changing in mood"], ["metamorphosis", "a magical change in form"], ["microcosm", "the world in miniature"], ["milieu", "environment"], ["minuscule", "tiny"], ["misanthropic", "hating mankind"], ["mitigate", "to moderate the effect of something"], ["mollify", "to soothe"], ["monolithic", "massive, solid, uniform and unyielding"], ["moribund", "dying"], ["morose", "gloomy"], ["mortify", "to humiliate"], ["mundane", "ordinary"], ["munificent", "lavish"], ["myopia", "nearsightedness"], ["myriad", "a huge number"], ["narcissism", "excessive love of one's body or oneself"], ["nebulous", "vague"], ["nefarious", "evil"], ["neologism", "a new usage of a word"], ["nepotism", "showing favoritism to friends or family in business or politics"], ["nihilism", "the belief that there are no values or morals in the universe"], ["nominal", "insignificant"], ["nostalgia", "sentimental longing for the past"], ["notorious", "famous for something bad"], ["novel", "new"], ["noxious", "harmful"], ["nuance", "a subtle difference or distinction"], ["obdurate", "stubborn and insensitive"], ["obfuscate", "to confuse"], ["oblique", "indirect"], ["oblivion", "total forgetfulness"], ["obscure", "hard to understand"], ["obsequious", "sucking up to"], ["obtuse", "insensitive"], ["officious", "annoyingly eager to help or advise"], ["onerous", "burdensome"], ["opaque", "impossible to see through or to understand"], ["opulent", "luxurious"], ["orthodox", "conventional, adhering to established principles,especially in religion"], ["ostensible", "apparent but misleading"], ["ostentatious", "showing off"], ["pacify", "to calm someone down"], ["painstaking", "extremely careful"], ["palliate", "to relieve or alleviate something without getting rid of the problem"], ["palpable", "obvious; tangible"], ["paltry", "insignificant"], ["panacea", "something that cures everything"], ["paradigm", "a model or example"], ["paradox", "a true statement or phenomenon that nonetheless seems to contradict itself"], ["parochial", "narrow or confined in point of view"], ["parody", "a satirical imitation"], ["parsimonious", "stingy"], ["partisan", "one who supports a particular person, cause, or idea"], ["patent", "obvious"], ["paternal", "fatherly"], ["pathology", "the science of diseases"], ["patriarch", "the male head of a family or tribe"], ["patrician", "an aristocrat"], ["patronize", "to treat as an inferior"], ["paucity", "scarcity"], ["peccadillo", "a minor offense"], ["pedantic", "boringly scholarly or academic"], ["pedestrian", "banal"], ["pejorative", "negative"], ["penchant", "a strong taste or liking for something"], ["penitent", "repentant"], ["pensive", "thoughtful and sad"], ["peremptory", "dictatorial"], ["perennial", "happening again and again"], ["perfidy", "treachery"], ["perfunctory", "unenthusiastic; careless"], ["peripatetic", "traveling continually"], ["periphery", "the outside edge of something"], ["perjury", "lying under oath"], ["permeate", "to penetrate"], ["pernicious", "deadly"], ["perquisite", "a privilege that goes along with a job"], ["pertinent", "relevant"], ["perturb", "to disturb greatly"], ["peruse", "to read carefully"], ["pervade", "to spread throughout"], ["petulant", "cranky"], ["philanthropy", "love of mankind, expressed by doing good deeds"], ["philistine", "a smugly ignorant person with no appreciation of intellectual or artistic matters"], ["pious", "hypocritical"], ["pivotal", "crucial"], ["placate", "to pacify"], ["plaintive", "expressing sadness or sorrow"], ["platitude", "a dull or trite remark"], ["plebeian", "low class"], ["plethora", "an excess"], ["poignant", "painfully emotional"], ["polarize", "to break up into opposing factions or groupings"], ["polemic", "a powerful argument often made to attack or refute"], ["ponderous", "so large as to be clumsy"], ["portent", "an omen"], ["postulate", "something accepted as true without proof"], ["pragmatic", "practical"], ["precedent", "an earlier example or model of something"], ["precept", "a rule to live by"], ["precipitate", "to cause to happen abruptly"], ["precipitous", "steep"], ["preclude", "to prevent something from ever happening"], ["precursor", "something that goes before and anticipates or paves the way for whatever it is that follows"], ["predilection", "a natural preference for something"], ["preeminent", "better than everyone; outstanding"], ["preempt", "to seize something by prior right"], ["premise", "an assumption"], ["prepossess", "to make a good impression on beforehand"], ["prerogative", "a right or privilege connected exclusively with a position, a person, a class, a nation, or some other group of classification"], ["prevail", "to triumph"], ["pristine", "unspoiled"], ["prodigal", "wastefully extravagant"], ["prodigious", "extraordinary; enormous"], ["prodigy", "an extraordinary accomplishment or occurrence"], ["profane", "not having to do with religion"], ["profess", "to declare falsely or pretend"], ["proficient", "skillful"], ["profligate", "extravagantly wasteful and usually wildly immoral"], ["profound", "deep"], ["profuse", "flowing; extravagant"], ["proletariat", "the industrial working class"], ["proliferate", "to spread or grow rapidly"], ["prolific", "abundantly productive"], ["promulgate", "to publicly or formally declare something"], ["propensity", "a natural inclination or tendency"], ["propitious", "marked by favorable signs or conditions"], ["proponent", "an advocate"], ["proprietary", "characteristic of an owner of property"], ["propriety", "good manners"], ["prosaic", "unimaginative"], ["proscribe", "to prohibit"], ["proselytize", "to convert from one religion or doctrine to another"], ["protagonist", "the leading character in a novel,play or other work"], ["protract", "to prolong"], ["provident", "preparing for the future"], ["provincial", "narrow"], ["provisional", "conditional"], ["proximity", "nearness"], ["prudent", "careful; having foresight"], ["purported", "rumored; claimed"], ["putative", "commonly accepted"], ["qualify", "to modify or restrict"], ["qualitative", "having to do with the quality or something"], ["querulous", "complaining"], ["quixotic", "romantic or idealistic to a foolish degree"], ["ramification", "a consequence"], ["rancor", "bitter,long-lasting resentment"], ["rapacious", "greedy"], ["rebuke", "to criticize sharply"], ["rebut", "to argue in opposition to"], ["recalcitrant", "disobedient"], ["recant", "to openly confess error"], ["reciprocal", "interchangeable"], ["reclusive", "withdrawn from society"], ["recondite", "hard to understand"], ["recrimination", "a bitter counter-accusation"], ["redolent", "fragrant"], ["redundant", "unnecessarily repetitive"], ["refute", "to disprove"], ["reiterate", "to repeat"], ["relegate", "to banish"], ["relentless", "unstoppable"], ["relinquish", "to surrender"], ["remonstrate", "to argue against"], ["renaissance", "a rebirth or revival"], ["renounce", "to give up formally or resign"], ["reparation", "compensation"], ["repercussion", "an indirect effect"], ["replenish", "to fill again"], ["replete", "completely filled"], ["reprehensible", "worthy of blame or censure"], ["reprisal", "a military action undertaken in revenge for another"], ["reproach", "to scold, usually in disappointment"], ["reprove", "to criticize mildly"], ["repudiate", "to reject"], ["requisite", "required"], ["resolute", "determined"], ["respite", "a period of rest or relief"], ["reticent", "reluctant to speak, especially about oneself"], ["revere", "to respect highly"], ["rhetoric", "the art of formal speaking or writing"], ["rigorous", "severe"], ["robust", "strong and healthy"], ["rogue", "someone who can't be trusted"], ["rudimentary", "basic; undeveloped"], ["ruminate", "to ponder"], ["rustic", "primitive"], ["saccharine", "excessively or disgustingly sweet"], ["sacrilege", "blasphemy"], ["sacrosanct", "sacred"], ["sagacious", "wise"], ["salient", "standing out"], ["salutary", "curative; healthful"], ["sanctimonious", "affecting religious feeling"], ["sanguine", "optimistic"], ["sardonic", "mocking"], ["scintillate", "to sparkle, either literally or figuratively"], ["scrupulous", "hesitant for ethical reasons"], ["scrutinize", "to examine very carefully"], ["secular", "having nothing to do with religion or spiritual concerns"], ["sedition", "promoting public disorder or rebellion"], ["sensory", "having to do with the senses or sensation"], ["sentient", "conscious"], ["sequester", "to set or keep apart"], ["serendipity", "accidental good fortune"], ["servile", "like a servant"], ["singular", "unique"], ["slander", "to speak badly about someone publicly"], ["sloth", "laziness"], ["sobriety", "the state of being sober; seriousness"], ["solicitous", "anxiously caring or attentive"], ["solvent", "not broke or bankrupt"], ["soporific", "extremely boring"], ["sordid", "filthy"], ["spawn", "to bring forth; to produce a big number"], ["specious", "deceptively plausible or attractive"], ["sporadic", "occurring in bursts every once in a while"], ["spurious", "fake"], ["squalor", "filth"], ["squander", "to waste"], ["stagnation", "motionlessness"], ["static", "not changing or moving"], ["staunch", "firmly committed"], ["steadfast", "loyal"], ["stigmatize", "to set a mark of disgrace upon"], ["stipulate", "to require something as part of an agreement"], ["stoic", "emotionless"], ["stratum", "a level"], ["stricture", "a limitation"], ["strife", "a struggle or clash"], ["stringent", "restrictive"], ["stymie", "to get in the way of"], ["subjugate", "to enslave"], ["sublime", "awesome"], ["subordinate", "inferior"], ["substantive", "essential; solid"], ["subtle", "not obvious"], ["subversive", "insurgent"], ["succinct", "brief and to the point"], ["succumb", "to yield or submit"], ["supercilious", "haughty"], ["superficial", "not thorough"], ["superfluous", "unnecessary"], ["surfeit", "excess or overindulgence in eating or drinking"], ["surreptitious", "sneaky"], ["surrogate", "substitute"], ["sycophant", "one who sucks up to others"], ["synthesis", "the combining of parts to form a whole"], ["tacit", "implied"], ["taciturn", "untalkative by nature"], ["tangential", "only superficially related to the matter at hand"], ["tangible", "touchable"], ["tantamount", "equivalent to"], ["tautological", "redundant"], ["temerity", "boldness"], ["temperate", "mild"], ["tenable", "valid"], ["tenacious", "not letting go"], ["tenet", "a shared principle or belief"], ["tentative", "temporary; uncertain"], ["tenuous", "flimsy"], ["terse", "succinct"], ["theology", "the study of God or religion"], ["tirade", "a prolonged bitter speech"], ["torpor", "inactivity; sluggishness"], ["touchstone", "a test of authenticity or quality"], ["tout", "to brag publicly about"], ["transcend", "to surpass"], ["transgress", "to sin"], ["transient", "temporary"], ["trepidation", "apprehension"], ["turpitude", "shameful wickedness"], ["ubiquitous", "being everywhere at the same time"], ["unconscionable", "not controlled by conscience"], ["unctuous", "oily; insincere"], ["uniform", "the same for everyone"], ["unremitting", "unceasing"], ["unwitting", "ignorant; not aware"], ["urbane", "sophisticated"], ["usurp", "to seize wrongfully"], ["utilitarian", "pragmatic"], ["utopia", "an ideal society"], ["vacillate", "to be indecisive"], ["vapid", "spiritless"], ["vehement", "violent; forceful; intense"], ["venal", "capable of being bribed"], ["venerate", "to treat as something holy, especially because of great age"], ["veracity", "truthfulness"], ["verbose", "using too many words"], ["verisimilitude", "the appearance of truth"], ["vernacular", "slang; idiom"], ["vestige", "remainder; a last trace"], ["vex", "to annoy"], ["viable", "capable of living"], ["vicarious", "living through the experiences of another as though they were one's own experiences"], ["vicissitude", "natural change; change in fortune"], ["vilify", "to defame"], ["vindicate", "to clear from all blame or suspicion"], ["vindictive", "seeking revenge"], ["virtuoso", "a masterful musician"], ["virulent", "full of hate; extremely poisonous"], ["visionary", "someone with impractical goals or ideals about the future"], ["vitiate", "to pollute"], ["vitriolic", "caustic"], ["vocation", "a job"], ["vociferous", "noisy"], ["volatile", "explosive; highly unstable"], ["volition", "conscious choice"], ["wanton", "malicious"], ["willful", "deliberate"], ["wistful", "sadly longing"], ["zealous", "enthusiastically devoted to something"]],
+      ws2: [["abase", "to humiliate; to lower in esteem or dignity; to humble"], ["abet", "to support or encourage someone especially someone who as done something wrong"], ["abeyance", "suspension; temporary cessation; obey"], ["abjure", "to repudiate; to take back; to refrain from"], ["abomination", "something despised or abhorred; extreme loathing"], ["aboriginal", "native; dating back to the very beginning"], ["abound", "to be very numerous"], ["abrogate", "to abolish or repeal formally; to set aside; to nullify"], ["accede", "to give in; to yeild; to agree"], ["accentuate", "to emphasize; to accent; to highlight"], ["access", "the right or ability to approach enter or use"], ["acclaim", "to praise publicly and enthusiastically"], ["accord", "to agree; to be in harmony; to grant or bestow"], ["accouterments", "personal clothing accessories or equipment; trappings"], ["accrue", "to accumulate over time"], ["acquisitive", "seeking or tending to acquire;"], ["acquit", "to find not guilty; to bahave or conduct oneself"], ["acronym", "a word made up of the initials of other words"], ["ad-lib", "to improvise; speak or act spontanesously"], ["adduce", "to bring forward as an example or as proof; to cite"], ["adjourn", "to suspend until another time"], ["adjunct", "something added to or connected with something else; an assistant"], ["advent", "arrival; coming; beginning"], ["adventitious", "accidnetal; connected to but nonetheless unrelated; irrelevant"], ["advocate", "a person who argues in favor of a position"], ["affidavit", "a sworn written statement made before an official"], ["affiliate", "to become closely associated with"], ["affliction", "misery; illness; great suffering; a source of misery or great suffering"], ["afford", "to give; to supply; to confer upon"], ["affront", "insult; a deliberate act of disrespect"], ["aftermath", "consequence; events following some occurrence or calamity"], ["aggrandize", "to exaggerate; to cause to appear greater; to increasesomething in power reputation wealth etc"], ["aggrieve", "to mistreat; to do grievous injury to; to distress"], ["aghast", "terrified shocked"], ["alchemy", "a seemingly magical process of transformation"], ["alienate", "to estrange; to cause to feel unwelcome or unloved; to make hostile"], ["allegiance", "loyalty"], ["allegory", "a story in which the characters are symbols with moral or spiritual meanings"], ["allot", "to apportion allocate or assign allocate"], ["altercation", "a heated fight argument or quarrel"], ["amass", "to pile up; to accumulate; to collect for one's own use"], ["amid", "in the middle of"], ["anathema", "something or someone loathe or detested"], ["ancillary", "subordinate; providing assistance"], ["angst", "anxiety; fear; dread"], ["annex", "to add or attach"], ["annuity", "an annual allowance or income; the annual interest payment on an investment; any regular allowance or income"], ["antedate", "to be older than; to have come before"], ["anterior", "situated in front"], ["anthology", "a collection especially of literary works"], ["antipodal", "situated on opposite sides of the earth; exactly opposite"], ["antiquity", "ancientness; ancient times"], ["aperture", "an opening chasm"], ["apex", "highest point"], ["apogee", "the most distant point in the orbit of the moon or of an artificial satellite"], ["apoplexy", "stroke that is numbness and paralysis resulting from the sudden loss of blood flow to the brain"], ["apostasy", "abandonment or rejection of faith or loyalty"], ["appalling", "causing horror or consternation; appellate- compell-"], ["apparition", "a ghost or ghostly object"], ["appellation", "a name"], ["appendage", "something added on to something else; a supplement"], ["apportion", "to distribute properionally; to divide into portions"], ["apposite", "distinctly suitable; pertinent"], ["appraise", "to estimate the value or quality of; to judge"], ["apprise", "to give notice to; to inform"], ["appurtenance", "something extra; an appendage; an accessory"], ["apropos", "appropriate; coming at the right time"], ["apt", "appropriate; having a tendency to; likely apposite apropos"], ["archipelago", "a large group of islands"], ["archives", "a place where historical documents or materials are stored; the documents or materials them"], ["arid", "very dry; lacking life interest or imagination"], ["armament", "implement of war; the process of arming for war"], ["armistice", "truce"], ["arraign", "to bring to court to answer an indictment; to accuse"], ["arrant", "utter; unmitigated; very bad"], ["arrears", "the state of being in debt; unpaid debts"], ["arsenal", "a collection of armaments; a facility for storing or producing armament; a supply of anything useful"], ["articulate", "to pronounce clearly; to express clearly"], ["artisan", "a person skilled in a craft"], ["ascertain", "to determine with certainty; to find out definitely"], ["ascribe", "to credit to or assign; to attribute"], ["askance", "with suspicion or disapproval"], ["aspersion", "a slanderous or damning remark"], ["assail", "to attack vigorously"], ["assert", "to claim strongly; to affirm"], ["assess", "to evaluate; to estimate; to appraise"], ["astringent", "harsh; severe; withering stringent- contingent-"], ["asylum", "a mental hospital or similar institution; refuge; a place of safety"], ["atone", "to make amends"], ["atrophy", "to wither away; to decline from disuse"], ["attest", "to give proof of; to declare to be true or correct; to give testimony"], ["attribute", "to credit to or assign; to ascribe"], ["augur", "to serve as an omen or be a sign; to predict or foretell"], ["august", "inspiring admiration or awe"], ["auspices", "protection; support; sponsorship"], ["auxiliary", "secondary; additional; giving assistance of aid"], ["avail", "to help; to be of use; to serve"], ["aversion", "a strong feeling of dislike"], ["avert", "to turn away; to prevent"], ["avid", "eager; enthusiastic avarice; arid-"], ["bacchanal", "a party animal; a drunken reveler; a drunken revelry or orgy"], ["baleful", "menacing; threatening"], ["balk", "to abruptly refuse to do something; ti stop short"], ["ballyhoo", "sensational advertising or promotion; uproar"], ["balm", "something that heals or soothes"], ["bandy", "to toss back and forth; to exchange"], ["banter", "an exchange of good-humored or mildly teasing remarks"], ["baroque", "extravagantly ornate; flamboyant in style"], ["barrage", "a concentrated outpouring of artillery fire or of anything else"], ["bauble", "a gaudy trinket; a small inexpensive on ornament"], ["bedlam", "noisy uproar and chaos;"], ["begrudge", "to envy another's possession or enj0yment of something; to be reluctant to give or to give grudgingly; wistful"], ["behest", "command; order"], ["bemoan", "to mourn about; to lament"], ["benediction", "a blessing; an utterance of good wishes"], ["benighted", "ignorant; unenlightened"], ["bestow", "to present as a gift; to confer"], ["bilious", "ill-tempered; cranky irasible choleric"], ["bivouac", "a temporary encampment especially of soldiers"], ["blanch", "to turn pale; to cause to turn pale"], ["bland", "mild; tasteless; dull; unlively"], ["blandishment", "flattery"], ["bliss", "perfect contentment; extreme joy"], ["bluster", "to roar; to be loud; to be tumultous"], ["bombast", "pompous or pretentious speech of writing"], ["bon vivant", "a person who enjoys good food good drink and luxirious living"], ["bona fide", "sincere done or made in good faith; authentic; genuine"], ["boon", "a blessing; a benefit"], ["boor", "a rude or churlish person"], ["booty", "goods taken from an enemy in war; plunder; stolen or confiscated goods"], ["botch", "to bungle; to ruin through poor of clumsy effort"], ["bracing", "invigorating galvanize"], ["brandish", "to wave or display threateningly"], ["bravado", "a false show or ostentatious show of bravery or defiance"], ["brawn", "big muscles; great strength"], ["brazen", "impudent; bold"], ["breach", "a violation; a gap or break"], ["brink", "edge"], ["bristle", "to stiffen with anger; to appear in some way similar to hair standing on end"], ["bromide", "a dull obvious overfamilar saying; a cliche"], ["brouhaha", "uproar; hubbub"], ["brusque", "abrupt in manner; blunt"], ["buffoon", "a joker especially one who is coarse of acts like an ass"], ["bulwark", "a wall used as a defensive fortification; anything used as the main defense against anything else"], ["cabal", "a group of conspirators; the acts of such a group; a clique"], ["cache", "a hiding place; the things hidden in a secret place"], ["calamity", "a disaster"], ["callous", "insensitive; emotionally hardened"], ["calumny", "slander; a maliciously false statement"], ["canon", "a rule of law especially a religious one; a body of rules of laws;"], ["cant", "insincere of hypocritical speech"], ["canvass", "to seek votes or opinions; to conduct a survey"], ["capacious", "spacious; roomy; commodious"], ["captivate", "to fascinate; to enchant; to enrapture"], ["carcinogenic", "causing cancer"], ["cardinal", "most import; chief"], ["careen", "to swerve; to move rapidly without control; to lean to one side"], ["cartography", "the art of making maps and charts"], ["cascade", "a waterfall; anything resembling a waterfall"], ["cataclysm", "a violent upheaval; an earthquake; a horrible flood"], ["cavalier", "arrogant; haughty; carefree; casual"], ["cavil", "to quibble; to raise trivial objections"], ["chaff", "worthless stuff"], ["chameleon", "a highly changeable person"], ["champion", "to defend; to support"], ["channel", "to direct; to cause to follow a certain path"], ["chaste", "pure and unadorned; abstaining from sex"], ["cherub", "a supercute chubby-cheeked child; a kind of angel"], ["chortle", "to chuckle with glee"], ["churl", "a rude person; a boor"], ["chutzpah", "brazenness; audacity"], ["cipher", "zero; a nobody; a code; the solution to a code"], ["circumnavigate", "to sail or travel all the way around"], ["citadel", "a fortress defending a city; a stronghold; a bulwark"], ["clandestine", "concealed or secret usually for an evil or subversive purpose"], ["classic", "top-notch; highest quality; serving as a standard or model"], ["cleave", "to cling; to split rent"], ["climatic", "having to do with the climate"], ["cloister", "a covered walk with columns on one side that runs along the perimeter of a courtyard especially in a convent or monastery; a convent or monastery; a tranquil secluded place"], ["clone", "an exact duplicate; an organism genetically identical to another"], ["clout", "a blow; influence"], ["cloy", "to cause to feel too full especially when indulging in something Overly sweet; to become wearisome through excess"], ["coddle", "to baby"], ["cogitate", "to ponder; to meditate; to think carefully; ruminate deliberate"], ["cohort", "a group"], ["commemorate", "to honor the memory of; to serve as a memorial to"], ["commiserate", "to express sorrow or sympathy for; to sympathize with; to pity"], ["commodious", "spacious; roomy; capacious"], ["compatible", "harmonious; capable of functioning working or living together in harmony; consistent"], ["competent", "capable; qualified"], ["compile", "to gather together; to gather together into a book"], ["comply", "to act or be in accordance with"], ["composed", "calm; tranquil"], ["compromise", "a settlement of differences in which each side gives up something"], ["compunction", "remorse a feeling of uneasiness at doing something wrong"], ["concave", "curved inward like the inside of a circle or a shpere"], ["concede", "to acknowledge as true or right; to grant or yield"], ["concentric", "having the same center"], ["concert", "combined action; agreement"], ["concoct", "to create by mixing ingredients; to devise"], ["concomitant", "following from; accompanying; going along with"], ["confederate", "an ally; an accomplice"], ["confer", "to exchange ideas; to consult with; to bestow"], ["confidant", "a person with whom secrets or private thoughts are shared"], ["configuration", "arrangement"], ["conflagration", "a large fire"], ["confluence", "a flowing together"], ["confound", "to bewilder; to amaze; to throw into"], ["congeal", "to solidify; to jell"], ["conjugal", "having to do with marriage"], ["connive", "to conspire; to aid or encourage a wrong"], ["conservatory", "a greenhouse usually one attached to another structure; a music or drama school"], ["consign", "to hand over; to assign; to entrust; to banish"], ["consolidate", "to combine or bring together; to solidify; to strengthen"], ["conspicuous", "easily seen; impossible to miss"], ["consternation", "sudden confusion"], ["constituency", "the group of voters represented by a politician; a group of supporters for anything; constitute"], ["contempt", "disdain; disgrace"], ["continuum", "a continuous whole without clear division into parts"], ["contraband", "smuggled goods"], ["contretemps", "an embracing occurrence; a mishap"], ["contumely", "rudeness; insolence; arrogance"], ["conundrum", "a puzzle or problem without a solution"], ["convene", "to gather together; to assemble; to meet"], ["conversant", "familiar; experienced"], ["converse", "the opposite"], ["convey", "to transport; to conduct; to communicate"], ["conviction", "strong belief; a determination of guilt"], ["convolution", "a twist or trun; the act of twisting or turning"], ["copious", "abundant; plentiful"], ["cordial", "gracious; warm; sincere loyalty"], ["corollary", "a proposition that follows easily"], ["corporeal", "material; tangible; having substance like the body"], ["correlation", "a mutual relation between two or more things"], ["corrosive", "eating away; destructive"], ["corrugated", "shaped with folds or waves"], ["coterie", "a group of close associates; a circleof freinds or associates"], ["cower", "to shrink away or huddle up in fear"], ["crass", "extremely unrefined; gross; stupid"], ["craven", "cowardly"], ["crescendo", "a gradual increase in the volume of a sound; a gradual increase in the intensity of anything"], ["crestfallen", "dejected; dispirited"], ["crevice", "a narrow split crack or fissure"], ["cringe", "to shrink back with fear; to cower; to be servile or suck up in a horrible way"], ["critique", "a critical review"], ["crux", "the central point; the essence"], ["cuisine", "a style of cooking"], ["cull", "to pick out from among many; to select; to collect"], ["curb", "to restrain or control"], ["curmudgeon", "a difficult bad-tempered person"], ["cursory", "quick and unthorough; hasty; superficial"], ["debase", "to lower in quality or value; to degrade"], ["debunk", "to expose the nonsense of"], ["decree", "an official order usually having the force of law"], ["decry", "to put down; to denounce"], ["deem", "to judge; to consider"], ["deficit", "a shortage especially of money"], ["defile", "to make filthy or foul; to desecrate desecrate consecrate"], ["deft", "skillful"], ["defunct", "no longer in effect; no longer in existence 1. deceased; 2. demise"], ["degrade", "to lower in dignity or status; to corrupt; to deteriorate"], ["deign", "to condescend; to think it in accordance with one's dignity ~ condescend"], ["deity", "a god or goddness"], ["dejected", "depressed; disheartened"], ["delectable", "delightful; delicious; deleterous"], ["delinquent", "neglecting a duty or law; late in payment lazy guilty"], ["delve", "to search or study intensively"], ["demeanor", "behavior; manner behavior"], ["demise", "death defunct"], ["demography", "the statistical study of characteristics of populations"], ["demur", "to object; to take exception"], ["demure", "shy; reserved; sedate"], ["denomination", "a classfication; a category name"], ["denote", "to signify; to indicate; to mark"], ["denounce", "to condemn"], ["depict", "to portray especially in a picture; to describe"], ["deplete", "to decrease the supply of; to exhaust; to use up"], ["deplore", "to regret; to condemn; to lament lamnet mourn"], ["deploy", "to station soldiers or armaments strategically; to arrange strategically"], ["depose", "to remove from office or position of power; abdicate"], ["depredate", "to prey upon; to plunder"], ["derelict", "neglectful; delinquent; deserted; abandoned"], ["desist", "to stop doing something; renounce"], ["devout", "deeply religious; fervent devote"], ["diatribe", "a bitter abusive denunciation"], ["dichotomy", "division into two parts especially contradictory ones"], ["diffuse", "to cause to spread out; to cause to disperse;"], ["dilapidated", "broken-down; fallen into ruin devastate"], ["dilate", "to make larger; to become larger; to speak or write at length"], ["dilemma", "a situation in which one must choose between two equally attractive choices; any problem or predicament"], ["diminution", "the act or process of diminishing; reduction diminish"], ["dire", "disastrous; desperate"], ["dirge", "a funeral song"], ["disaffect", "to cause to lose affection; to estrange; to alienate; disgruntle"], ["disarray", "disorder; confusion"], ["disclaim", "to deny any claim to; to renounce"], ["discomfit", "to frustrate; to confuse; frustrate; confuged"], ["disconcert", "to upset; to ruffle; to perturb"], ["discourse", "spoken or written expression in words; conversation"], ["discrepancy", "difference; inconsistency"], ["discursive", "rambling from one topic to another usually aimlessly"], ["disgruntle", "to make sulky and dissatisfied; to discontent"], ["dismal", "dreary; causing gloom; causing dread"], ["dismay", "to fill with dread; to discourage greatly to perturb"], ["dispassionate", "unaffected by passion; impartial; calm indifferent"], ["disperse", "to scatter; to spread widely; to disseminate"], ["dispirit", "to discourage; to dishearten; to lose spirit"], ["disposition", "characteristic attitude; state of mind; inclination; arrangement"], ["disproportionate", "out of proportion; too much or too little"], ["disquiet", "to make uneasy"], ["dissemble", "to conceal the real nature of; to act or speak falsely in order to"], ["dissent", "to disagree; to withhold approval"], ["disservice", "a harmful action; an ill turn"], ["dissident", "a person who disagrees or dissents"], ["dissuade", "to persuade not to"], ["distinct", "separate; different; clear and unmistakable"], ["diurnal", "occurring overy day; occurring during the daytime"], ["divine", "to intuit; to prophesy"], ["divulge", "to reveal especially to reveal something that has been a screat"], ["document", "to support with evidence especially written evidence"], ["doldrums", "low spirits; a state of inactivity"], ["doleful", "sorrowful; filled with frief"], ["dolt", "a stupid person; a dunce"], ["dotage", "senility; foolish affection"], ["dour", "forbidding; severe; gloomy"], ["downcast", "directed downward; dejected; depressed"], ["downplay", "to minimize; to represent as being insignificant; to play down"], ["draconian", "harsh; sever; cruel"], ["droll", "humorous; amusing in an odd often understated way"], ["dross", "worthless stuff especially worthless stuff arising"], ["duress", "coercion; compulsion by force or threat"], ["ebb", "to diminish; to recede"], ["ecclesiastical", "having to do with the church"], ["eclipse", "to block the light of; to overshadow; to reduce the significance of;"], ["edict", "an official decree"], ["edifice", "a big imposing building"], ["effectual", "effective; adequate"], ["efficacy", "effectiveness"], ["effigy", "a likeness of someone especially one used in expressing hatred for the person of whom it is a likeness"], ["elation", "a feeling of great joy"], ["electorate", "the body of people entitled to vote in an election; the voters"], ["elegy", "a mournful poem or other piece of writing; a mournful piece of music"], ["elite", "the best or most select group"], ["elocution", "the art of public speaking"], ["emaciate", "to make extremely thin through starvation or illness"], ["emanate", "to come forth; to issue"], ["emancipate", "to liberate; to free from bondage or restraint"], ["embargo", "a government order suspending foreign trade; a government order suspending the movement of freight-carrying ships in and out of the country's ports"], ["embellish", "to adorn; to beautify by adding ornaments; to add fanciful or fictitious embody to personify; to give physical form to"], ["embroil", "to involve in conflict; to throw into disorder"], ["embryonic", "undeveloped; rudimentary"], ["emissary", "a messenger of representative sent to represent another"], ["empathy", "identification with the feelings or thoughts of another"], ["empower", "to give power or authority to; to enable"], ["endear", "to make dear; to make beloved"], ["engaging", "charming; pleasing; attractive"], ["enmity", "deep hatred; animosity; ill will"], ["ennui", "boredom; listless lack of interest"], ["ensue", "to follow immediately afterward; to result"], ["entail", "to have as a necessary consequence; to involve"], ["entity", "something that exists; a distinct thing"], ["entreat", "to ask earnestly; to beg; to plead"], ["entrepreneur", "an independent business person;"], ["enumerate", "to name one by one; to list"], ["envision", "to imagine; to foresee"], ["epicure", "a person with refined taste in wine and food"], ["epilogue", "an afterword; a short concluding chapter of a book; a short speech at the end of a play"], ["epoch", "an era; a distinctive period of time"], ["equestrian", "having to do with horseback riding"], ["estimable", "worthy of admiration; capable of being estimated"], ["estrange", "to make unfriendly or hostile; to cause to feel removed from"], ["ethics", "moral standards governing behavior"], ["eulogy", "spoken or written tribute to a person especially a person who has just died"], ["evince", "to demonstrate convincingly; to prove"], ["evoke", "to summon farth; to draw forth; to awaken; to produce of suggest"], ["excise", "to remove by cutting or as if by cutting"], ["exempt", "excused; not subject ot"], ["exhume", "to unbury; to dig out of the ground"], ["exodus", "a mass departure or journey away"], ["exorbitant", "excessively costly; excessive"], ["expiate", "to make amends for; to atone for"], ["explicate", "to make a detailed explanation of the meaning of"], ["exposition", "explanation; a large public exhibition"], ["expostulate", "to reason with someone in order to warn or dissuade"], ["expunge", "to erase; to eliminate any trace of efface excise"], ["exquisite", "extraordinarily fine or beautiful; intense"], ["extant", "still in existence"], ["extort", "to obtain through force threat or illicit means"], ["extremity", "the outermost point or edge; the greatest degree; grave danger;"], ["exuberant", "highly joyous or enthusiastic; overflowing; lavish"], ["facade", "the front of a building; the false front of a building; the false front or misleading appearance of anything"], ["facet", "any of the flat polished surfaces of a cut gem; aspect"], ["fallacy", "a false notion or belief; a misconception"], ["fathom", "to understand; to penetrate the meaning of sound"], ["faux", "false"], ["fawn", "to exhibit affection; to seek favor through flattery;"], ["feign", "to make a false representation of; to pretend"], ["fester", "to generate pus; to decay erode corrosive"], ["fetish", "an object of obsessive reverence attention or interest"], ["fiasco", "a complete failure or disaster; an incredible"], ["fiat", "an arbitrary decree or order"], ["fickle", "likely to change for no good reason"], ["figment", "something made up or invented; a fabrication"], ["fiscal", "pertaining to financial matters; monetary"], ["fledgling", "inexperienced or immature"], ["flippant", "frivolously disrespectful; saucy; pert; flip"], ["florid", "ruddy; flushed; red-faced"], ["fodder", "coarse food for livestock; raw material"], ["folly", "foolishness; insanity; imprudence"], ["foray", "a quick raid or attack; an initial venture"], ["forebode", "to be an omen of; to predict; to foretell"], ["foreclose", "to deprive a mortgagor of his or her right to redeem a property; to shut out or exclude"], ["forensic", "related to or used in courts of law"], ["forestall", "to thwart prevent or hinder something from happening; to head off"], ["forswear", "to retract renounce or recant; to take back recant"], ["forte", "a person's strong point special talent or specialty"], ["forthright", "frank; outspoken; going straight to the point"], ["foster", "to encourage; to promote the development of"], ["fragmentary", "incomplete; disconnected; made up of fragments"], ["fruitful", "productive; producing good or abundant results; successful"], ["fuel", "to stimulate; to ignite; to kindle as if providing with fuel"], ["fulminate", "to denounce vigorously; to protest vehemently against something"], ["gaffe", "a social blunder; an embarrassing mistake; a faux pas"], ["galvanize", "to startle into sudden activity; to revitalize"], ["gambit", "a scheme to gain an advantage; a ploy"], ["gamut", "the full range of something"], ["garner", "to gather; to acquire; to earn"], ["gastronomy", "the art of eating well"], ["generic", "general; common; not protected by trademark"], ["genesis", "origin; creation; beginning"], ["genocide", "the extermination of a notional racial or religious group"], ["germane", "applicable; pertinent; relevant pertinent"], ["ghastly", "shockingly horrible; frightful; ghostlike"], ["gratis", "free of charge"], ["grievous", "tragic; agonizing; severe mourn bemoan;"], ["grimace", "to make an ugly disapproving facial expression"], ["guise", "appearance; semblance"], ["habituate", "to train; to accustom to a situation"], ["halcyon", "peaceful; carefree;"], ["harass", "to attack repeatedly; to torment or pester"], ["harbinger", "a precursor; an indication; an omen"], ["harp", "to repeat tediously; to go on and on about something"], ["harry", "to harass; to annoy"], ["heinous", "shockingly evil; abominable; atrocious"], ["herald", "a royal proclaimer; a harbinger"], ["hoary", "gray or white with age; ancient; stale"], ["homage", "reverence; respect"], ["hubris", "arrogance; excessive pride"], ["hypocrisy", "insincerity; two-facedness"], ["imbue", "to inspire; to permeate or tinge"], ["impasse", "a deadlock; a situation from which there is no escape"], ["impeach", "to accuse or indict; to challenge; call into question"], ["impecunious", "without money; penniless"], ["impede", "to obstruct or interfere with; to delay"], ["impending", "approaching; imminent; looming"], ["impenetrable", "incapable of being penetrated; impervious; incomprehensible"], ["imperative", "completely necessary; vitally important"], ["impetuous", "rash; overimpulsive; headlong"], ["implication", "something implied or suggested; ramification"], ["importune", "to urge with annoying persistence; to trouble"], ["impoverish", "to reduce to poverty; to make destitute"], ["impregnable", "unconquerable; able to withstand attack"], ["impresario", "a person who manages public entertainments especially operas but other events as well"], ["impromptu", "done without preparation on the spur of the moment"], ["improvise", "to perform without preparation; to make do with whatever materials are available"], ["impunity", "freedom from punishment or harm"], ["inadvertent", "unintentional; heedless; not planned insouciant"], ["inalienable", "sacred; incapable of being transferred lost or taken away"], ["incarnation", "embodiment"], ["incendiary", "used for setting property on fire; tending to arouse passion or anger; inflammatory"], ["inclination", "tendency; preference; liking"], ["inculcate", "to instill or implant by repeated suggestions or admonitions"], ["incumbent", "currently holding an office; obligatory"], ["incursion", "a hostile invasion; a raid"], ["indict", "to charge with a crime; to accuse of wrongdoing"], ["induce", "to persuade; to influence; to cause"], ["ineluctable", "inescapable; incapable of being resisted or avoided"], ["ineradicable", "incapable of being removed or destroyed or eradicated"], ["inflammatory", "fiery; tending to arouse passion or anger; incendiary"], ["influx", "inflow; arrival of large numbers of people or things; inundation"], ["infraction", "violation; infringement; the breaking of a law"], ["infrastructure", "the basic framework of a system; foundation"], ["infringe", "to violate; to encroach or trespass"], ["infuse", "to introduce into; to instill"], ["ingratiate", "to work to make yourself liked"], ["inimical", "unfavorable; harmful; detrimental; hostile"], ["inimitable", "impossible to imitate; incomparable; matchless; the best"], ["innuendo", "an insinuation; a sly hint"], ["inquisition", "ruthless questioning; an official investigation characterized by cruelty"], ["insouciant", "nonchalant; lighthearted; carefree"], ["insufferable", "unbearable; intolerable"], ["insuperable", "unable to be overcome; insurmountable; overwhelming"], ["insurrection", "an act of open rebellion against"], ["integral", "essential; indispensable"], ["interim", "meantime; an intervening time; a temporary arrangement"], ["interloper", "intruder; trespasser; unwanted person"], ["interlude", "an intervening episode; an intermission; a pause episode"], ["interminable", "seemingly unending; tediously long"], ["intermittent", "occasional; repeatedly starting and stopping; recurrent"], ["intersperse", "to place at intervals; to scatter among"], ["intervene", "to come between opposing groups; to mediate; to take place; to occur between times"], ["intimate", "to hint or imply"], ["intricate", "complicated; sophisticated; having many parts or facest"], ["intrigue", "a secret scheme; a crafty plot"], ["invidious", "causing envy or resentment; offensively harmful"], ["inviolate", "free from injury; pure"], ["invoke", "to entreat or pray for; to call on as in prayer; to declare to be in effect"], ["iridescent", "displaying glowing changing colors"], ["jaunt", "a short pleasure trip"], ["jingoism", "belligerent chauvinistic patriotism; warmongering"], ["jocular", "humorous; jolly; fond of joking"], ["jubilation", "exultant joy"], ["junction", "convergence; linkup; the act or state of being joined together"], ["junta", "a small grouup ruling a country after a coup d'etat"], ["larceny", "theft; robbery"], ["lascivious", "lustful; obscene; lewd"], ["lavish", "to spend freely or bestow generously; to squander"], ["lax", "negligent; lazy; irresponsible"], ["layman", "a nonprofessional; a person who is not a member of the clergy"], ["liaison", "connection; association; alliance; secret love affair"], ["licentious", "lascivious; lewd; promiscuous; amoral"], ["limpid", "transparent; clear; lucid"], ["listless", "sluggish; without energy or enthusiasm"], ["litany", "recital or list; tedious recounting"], ["livid", "discolored; black and blue; enraged"], ["loath", "extremely unwilling; reluctant"], ["lobby", "to urge legislative action; to exert influence"], ["lout", "boor; oaf; clod; boor"], ["ludicrous", "ridiculous; absurd"], ["lyrical", "melodious; songlike; poetic"], ["malapropism", "humorous misuse of a word that sounds similar to the word intended but has a ludicrously different meaning"], ["mania", "crazed excessive excitement; insanity; delusion"], ["marginal", "related to or located at the margin or border;"], ["materialistic", "preoccupied with material things; greedy for possessions"], ["mawkish", "overly sentimental; maudlin"], ["meander", "to travel along a winding or indirect route; to ramble or stray from the topic"], ["medium", "the means by which something is conveyed or accomplished; a substance through which something is transferred or conveyed;"], ["melancholy", "gloomy; depressed and weary"], ["melee", "a brawl; a confused fight or struggle; a violent free for-all; tumultuous menagerie a collection of animals"], ["meticulous", "precise and careful about details; fussy"], ["millennium", "a period of 1000 years; a thousandth anniversary"], ["mode", "method of doing; type; manner; fashion"], ["modulate", "to reduce or regulate; to lessen the intensity of"], ["momentum", "force of movement; speed; impetus"], ["moratorium", "s suspension of activity; a period of delay"], ["more", "marshy mucky ground"], ["mores", "customary moral standards"], ["motif", "a recurring theme or idea"], ["motley", "extremely varied or diverse; heterogeneous; multicolored"], ["municipal", "pertaining to a city or town and its government"], ["muse", "to ponder; to meditate"], ["muster", "to assemble for battle or inspection; to summon up"], ["mystic", "otherworldly; mysterious; enigmatic"], ["nebulous", "vague or indistinct; unclear; hazy"], ["nemesis", "unconquerable opponent or rival; one who seeks just compensation or revenge to right a wrong"], ["neophyte", "beginner; novice"], ["nirvana", "a blissful painless worry-free state"], ["noisome", "offensive or disgusting; stinking; noxious"], ["nomadic", "wandering from place to place; without a permanent home"], ["nomenclature", "a set or system of names; a designation; a terminology"], ["nonchalant", "indifferent; coolly unconcerned; blasé"], ["nullify", "to repeal; to cancel; to void"], ["obeisance", "a bow or curtsy; deep reverence obedient obedience obeisant obey"], ["objective", "unbiased; unprejudiced"], ["obtrusive", "interfering; meddlesome; having a tendency to butt in obtrude compelling coerce"], ["obviate", "to make unnecessary; to avert"], ["occult", "supernatural; magic; mystical"], ["odious", "hateful; evil; vile"], ["odyssey", "a long difficult journey usually marked by many changes of fortune"], ["olfactory", "pertaining to the sense of smell"], ["oligarchy", "government by only a very few people"], ["ominous", "threatening; menacing; portending doom"], ["omniscient", "all-knowing; having infinite wisdom"], ["opprobrious", "damning; extremely critical; disgraceful"], ["ordinance", "law; regulation; decree"], ["oscillate", "to pulsate; to waver or vacillate between beliefs or ideas"], ["osmosis", "gradual or subtle absorption"], ["ostracize", "to shun; to shut out"], ["oust", "to eject; to expel; to banish"], ["override", "to overrule; to prevail over"], ["overture", "opening move; preliminary offer"], ["oxymoron", "a figure of speech in which two contradictory words or phrases are used together"], ["palatable", "pleasant to the taste; agreeable to the feelings"], ["pallor", "paleness; whiteness"], ["pandemic", "prevalent throughout a large area"], ["panegyric", "elaborate praise; eulogy"], ["parable", "religious allegory; fable; morality tale; palpable=touchable culpable=guilty"], ["paragon", "a model or pattern of excellence"], ["parallel", "similar comparable"], ["paranoia", "a mental illness in which the sufferer believes people are out to get him; unreasonable anxiety"], ["paranormal", "having to do with an event or events that can't be explained scientifically; supernatural"], ["paroxysm", "a sudden violent outburst; a severe attack"], ["partition", "division; dividing wall"], ["pastoral", "rural; rustic; peaceful and calm like the country"], ["pathos", "that which makes people feel pity or sorrow"], ["patina", "surface discoloration caused by age"], ["patrimony", "an inheritance especially from a father; a legacy"], ["peculiar", "unusual; bizarre; individual; belonging to a particular region"], ["peregrination", "wandering; traveling"], ["perpetrator", "the one who committed the act"], ["perpetuate", "to make something perpetual; to keep from perishing"], ["perverse", "contrary; stubborn"], ["phantasm", "apparition; ghost; phantom"], ["phlegmatic", "calm or indifferent; not easily roused to excitement"], ["pilgrimage", "religious o spiritual journey; excursion; peregrination"], ["placebo", "a fake medication; a fake medicatin used as a control in tests of the"], ["platonic", "nonsexual; purely spiritual"], ["plausible", "believable; convincing"], ["pliable", "flexible; easy to bend; easy to convince persuade or mold"], ["plight", "a dangerous distressing or unpleasant situation"], ["plunder", "to loot; o ransack"], ["pluralism", "a condition of society in which distinct groups exist and function together get retain their own identities"], ["porous", "filled with many tiny holes; permeable; absorbent"], ["posterity", "future generations; descendants; heirs"], ["posthumous", "occurring after one's death; published after the death of the author"], ["posture", "to act or speak artificially or affectedly"], ["prattle", "to chatter on and on; to babble childishly"], ["precarious", "dangerously insecure or unsteady"], ["precocious", "unusually mature; uncommonly gifted"], ["predecessor", "someone or something that precedes in time"], ["predicament", "a dangerous or unpleasant situation; a dilemma"], ["predispose", "to make susceptible; to put in a frame of mind for; to incline toward"], ["predominant", "most important; dominant; having power over others"], ["pregnant", "highly significant; overflowing"], ["prelude", "introduction; something that precedes something else"], ["premeditated", "planned beforehand; prearranged; plotted"], ["preponderance", "superiority in weight number size extent influence ext. majority; predominance"], ["presage", "to portend; to foreshadow; to forecast or predict"], ["presentiment", "the feeling that something especially bad is about to happen"], ["presumably", "probably; the assumption is that; doubtless"], ["presuppose", "to assume beforehand; to take for granted in advance; to require as a prior condition"], ["primal", "first; original; of the greatest importance"], ["pristine", "perfectly clean and untouched; uncontaminated"], ["privation", "lack of comforts or necessities; poverty"], ["proclaim", "to announce; declare; make known"], ["procure", "to obtain or acquire by special means"], ["progeny", "offspring; descendants"], ["propagate", "to reproduce; to multiply; to spread or disseminate"], ["propound", "to set forth or propose; to offer for consideration propose"], ["protocol", "diplomatic etiquette and customs"], ["provocation", "the act of provoking; incitement; cause"], ["prowess", "exceptional skill or strength; uncommon bravery"], ["prurient", "having lustful thoughts or desires; causing lust"], ["pseudonym", "a false name; an alias"], ["psyche", "the human soul; the mind; the spirit"], ["pummel", "to pound or punch with the fists; plumb=plummet"], ["punctilious", "meticulously attentive to detail; scrupulously and sometimes annoyingly exact"], ["pundit", "an expert; an authority; a learned person erudite"], ["pungent", "sharp-tasting or sharp-smelling; acrid; causing or incisive; repugnant-"], ["punitive", "inflicting a punishment"], ["purblind", "dim-sighted; practically blind; lacking understanding or imagination"], ["puritanical", "very severe and strict about morals"], ["quaint", "pleasantly old-fashioned; picturesque"], ["quandary", "state of perplexity; predicament"], ["quasi", "almost; near; resembling"], ["quay", "a landing on the edge of the water; wharf; pier"], ["quell", "to put an end to; to squelch; to suppress"], ["query", "a question; an inquiry"], ["queue", "a line or file"], ["quiescent", "motionless; at rest; still"], ["quintessential", "being the most perfect example of"], ["quizzical", "teasing; mocking; questioning; inquisitive"], ["quotidian", "daily; everyday; ordinary"], ["rampant", "widespread; uncontrollable; prevalent; raging"], ["rapture", "ecstasy; bliss; unequaled joy"], ["rarefied", "esoteric; interesting to a select group only; exalted"], ["ratify", "to confirm; to approve something formally"], ["ratiocination", "logical reasoning"], ["rationale", "underlying reason; basis; reasoning"], ["raucous", "stridently loud; harsh; rowdy"], ["reactionary", "ultraconservative; right-wing; backward- thinking"], ["rebuff", "to snub; to reject"], ["recidivism", "the act of repeating an offense"], ["redeem", "to buy back; to fulfill; to make up for; to rescue from sin"], ["redress", "to remedy; to make amends for"], ["referendum", "a public vote on a measure proposed or passed by a legislature"], ["refractory", "disobedient and hard to manage; resisting treatment"], ["regime", "a governing power; a system of government;"], ["regimen", "a regulated course"], ["remission", "the temporary or permanent disappearance of a disease; pardon"], ["remuneration", "payment; recompense"], ["rend", "to tear; to rip"], ["render", "to make; to cause to be; to provide; to depict"], ["repartee", "a quick witty reply; witty spirited conversation full of quick witty replies"], ["replicate", "to reproduce exactly; to duplicate; to repeat"], ["repose", "rest; tranqillity; relaxation"], ["repress", "to hold back; to conceal from oneself; to suppress"], ["reprimand", "stern reproof; official rebuke"], ["reprisal", "retaliation; revenge; counterattack"], ["reprobate", "a depraved wicked person; a degenerate"], ["repugnant", "repulsive; offensive; disgusting"], ["resignation", "passive submission; acquiescence"], ["resplendent", "brilliantly shining; radiant; dazzling"], ["resurrection", "return to life; revival"], ["retort", "to make a sharp reply"], ["retrospect", "looking backward; a review"], ["revamp", "to revise; to renovate"], ["revel", "to enjoy thoroughly; to take delight in; to carouse"], ["revile", "to scold abusively; to berate; to denounce"], ["revulsion", "loathing; repugnance; disgust"], ["rhapsodize", "to speak extremely enthusiastically; to gush"], ["ribald", "indecent or vulgar; off-color"], ["rife", "occurring frequently; widespread; common; swarming"], ["rivet", "to engross; to hold firmly"], ["rout", "to put to flight; to scatter; to cause a huge defeat"], ["rue", "to mourn; to regret"], ["sally", "a sudden rushing attack; an excursion; an expedition; a repartee; a clever rejoinder"], ["salutation", "greeting; welcome; opening words of greeting"], ["sanction", "official permission or approval; endorsement; punitive measure"], ["sarcasm", "irony; jokingly or bitingly saying the opposite of what is meant sneer"], ["savant", "a scholar; a very knowledgeable and learned person pundit erudite"], ["scant", "limited; meager; barely sufficient"], ["schism", "division; separation; discord or disharmony"], ["scorn", "to disdain; to find someone or something contemptible"], ["seamless", "without a seam; without anything to indicate where two things were joined together; smooth"], ["secede", "to withdraw from an alliance"], ["seclusion", "aloneness; withdrawal from other people"], ["sect", "a small religious subgroup or religion; any group with a uniting theme of purpose"], ["sedentary", "largely confined to sitting down; not physically active"], ["self-made", "having succeeded in life without help from others"], ["sententious", "preachy; pompous; excessively moralizing; self-righteous"], ["serene", "calm; peaceful; tranquil; untroubled"], ["serpentine", "snakelike in either shape or movement; winding as a snake travels"], ["shackle", "a manacle; a restraint"], ["shibboleth", "a distinctive word pronunciation or behavior that typifies a particular group; a slogan or catchword"], ["shrewd", "wily; cunning; sly"], ["singular", "exceptional; unique; unusual"], ["skirmish", "a fight between small numbers of troops; a brief conflict"], ["skittish", "nervous; easily startled; jumpy"], ["slake", "to quench; to satisfy; to assuage"], ["solace", "consolation; comfort"], ["solidarity", "sense of unity; a sense of sharing a common goal or attitude"], ["sophomoric", "juvenile; childishly goofy"], ["sordid", "morally vile; filthy; squalid"], ["sovereign", "supreme ruler; monarch"], ["spate", "a sudden outpouring"], ["specious", "something that seems correct or appropriate but that lacks real worth; deceptive; misleading; not genuine superfluous"], ["specter", "ghost; phantom"], ["spectrum", "a broad sequence or range of different but related thing s or ideas"], ["spurn", "to reject disdainfully; to scorn"], ["stalwart", "sturdily built; robust; valiant; unwavering"], ["stark", "utter; unmitigated; harsh; desolate"], ["stint", "to restrict or hold back on; to be frugal"], ["stipend", "income; allowance; salary"], ["stolid", "not easily roused to emotion; impassive; apathetic; phlegmatic"], ["stout", "plump; stocky; substantial"], ["stratagem", "a maneuver designed to outwit an enemy; a scheme; a ruse"], ["stupendous", "remarkable; extraordinary; remarkably large or extraordinarily gigantic"], ["stupor", "a stunned condition; near-unconsciousness; apathy; inertia"], ["subside", "to sink or settle; to diminish; to lessen"], ["subsidiary", "supplemental; additional; secondary or subordinate"], ["subsidize", "to provide financial aid; to make a financial contribution"], ["substantiate", "to prove; to verify; to confirm"], ["subterfuge", "artifice; a trick or stratagem; a ruse"], ["suffice", "to be sufficient; to be enough"], ["suffrage", "the right to vote"], ["suffuse", "to cover; to overspread; to saturate"], ["sumptuous", "luxurious; splendid; lavish"], ["supersede", "to take the place of; to supplant; to make something obsolete"], ["supine", "lying on one's back"], ["supplication", "humble prayer; earnest entreaty"], ["suppress", "to overpower; to subdue; to quash"], ["surmise", "to conjecture; to guess"], ["surreal", "having an unreal fantastic quality; hallucinatory; dreamlike"], ["susceptible", "capable of being influenced by something; capable of being or receptive to"], ["sweeping", "far-reaching; extensive; wide-ranging"], ["systemic", "affecting the entire system especially the entire body"], ["tactical", "having to do with tactics especially naval or military tactics; marked tactics or deft maneuvering"], ["taint", "contaminant; a trace of something spoiled contaminated off-flavor"], ["tedium", "dullness; monotony; boredom"], ["teem", "to swarm; to be inundated; to overrun"], ["temporal", "pertaining to time; pertaining to life; earthly existence; noneternal; short-lived"], ["temporize", "to stall; to cause delay through indecision; extemporize-"], ["tepid", "lukewarm; halfhearted"], ["thorny", "full of difficulties; tough; painful"], ["threshold", "the sill of a doorway; a house's or building's entrance; any point of beginning or entering"], ["throttle", "to choke; to strangle; to work a fuel lever or feed the flow of fuel to an engine"], ["thwart", "to prevent from being accomplished; to frustrate; to hinder"], ["timorous", "fearful; easily frightened"], ["titillate", "to excite; to stimulate; to tease"], ["titular", "in title or name only; nominal"], ["toil", "hard work; labor; drudgery; exhausting effort"], ["tortuous", "winding; twisting; serpentine; full of curves"], ["toxic", "poisonous"], ["transfix", "to cause to stand motionless with awe amazement emotion; to rivet"], ["trauma", "severe shock or distress; a violent wound; a wrenching experience"], ["travesty", "a grotesque or shameful imitation; a mockery; a perversion"], ["trenchant", "concise; effective; caustic; sarcastic cf. nonchalant=indifferent penchant-"], ["triumvirate", "a ruling coalition of three officials; any group of three working jointly"], ["tryst", "a secret meeting of lovers"], ["tumult", "violent noisy commotion; uproar; outbreak"], ["turbid", "murky; opaque; unclear"], ["turmoil", "state of great confusion or commotion"], ["uncanny", "extraordinary; unimaginable; seeming supernatural"], ["underlying", "basic; fundamental; only noticeable under scrutiny"], ["undermine", "to impair; to subvert; to weaken by excavating underneath"], ["underpinning", "a system of supports beneath; a foundation or basis"], ["underscore", "to underline; to emphasize"], ["underwrite", "to sponsor; to subsidize; to insure"], ["unilateral", "involving one side only; done on behalf of one side only;"], ["usury", "lending money at an extremely high rate of interest"], ["vacuous", "empty of content; lacking in ideas or intelligence"], ["vagary", "whim; unpredictable action; wild notion"], ["vanquish", "to conquer; to overpower"], ["veneer", "facade; coating; outward appearance"], ["verdant", "covered with green plants; leafy; inexperience"], ["verge", "border; brink; edge"], ["verity", "the quality of being true; something true"], ["vie", "to complete; to contest; to struggle"], ["vigilant", "constantly alert; watchful; wary"], ["vignette", "a small decorative design or drawing; a short literary sketch; a brief but expressive scene in a play or movie"], ["viscous", "thick; gluey; sticky"], ["vivacious", "lively; animated; full of pep"], ["vogue", "fashion; style"], ["voluminous", "large; extensive; having great volume"], ["voluptuous", "pleasant to the senses; luxurious; pleasure- seeking; extra full and shapely"], ["voracious", "having a huge appetite; ravenously"], ["waft", "to float; to drift; to blow"], ["waive", "to relinquish a right; to forgo; to put aside for the time being"], ["wake", "an all-night vigil kept over a dead body before it is buried;"], ["wane", "to decrease in strength or intensity; ti fade away; to decline in power"], ["warrant", "to justify; to provide grounds for; to guarantee"], ["wary", "cautions; watchful; carefull"], ["wizened", "shriveled; withered; shrunken"], ["woe", "suffering; affliction; distress"], ["wrath", "deep anger; fury"], ["zeitgeist", "the mood or spirit of the times"], ["zenith", "highest point; peak; pinnacle"], ["adage", "a traditional saying; a proverb"]]
+    };
+    const NAMES = { ws1: "Word Smart 1", ws2: "Word Smart 2" };
+    const MIN = 6e4, DAY = 864e5, INT = [0, DAY, 3 * DAY, 7 * DAY, 21 * DAY, 30 * DAY];
+    const dk = t => { const d = new Date(t || Date.now()); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0") };
+    const GOALS = [20, 50, 100, 200, 500];
+    let S = { deck: "ws1", tab: "study", goal: 100, gv: 2, more: {}, older: {}, auto: true, extra: { ws1: [], ws2: [] }, p: { ws1: {}, ws2: {} }, log: {} };
+    let hadLS = false;
+    let durableSave = null;
+    try {
+      hadLS = !!localStorage.getItem("wsv3");
+      const r = JSON.parse(localStorage.getItem("wsv3") || "null");
+      if (r) Object.assign(S, r);
+      else {
+        const o = JSON.parse(localStorage.getItem("wsv") || "null");
+        if (o) {
+          S.deck = o.deck || "ws1"; S.extra = o.extra || S.extra;
+          for (const k of ["ws1", "ws2"]) for (const w in ((o.known || {})[k] || {})) S.p[k][w] = { b: 5, d: Date.now() + 30 * DAY, s: 0 };
+        }
+      }
+    } catch (e) { }
+    function mig() {
+      if (S.gv !== 2) { S.goal = 100; S.gv = 2 }
+      if (!GOALS.includes(S.goal)) S.goal = GOALS.find(n => n >= S.goal) || 500;
+      S.older = S.older || {};
+      for (const k of ["ws1", "ws2"]) for (const w in S.p[k]) {
+        const p = S.p[k][w];
+        if (!p.f) p.f = dk(Math.min(Date.now(), (p.d || Date.now()) - (INT[p.b] || 0)))
+      }
+    }
+    mig();
+    const save = () => {
+      const data = JSON.stringify(S);
+      try { localStorage.setItem("wsv3", data) } catch (e) { }
+      if (durableSave) durableSave(data);
+    };
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    const shuf = a => a.map(x => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map(x => x[1]);
+    const words = () => D[S.deck].concat(S.extra[S.deck]);
+    const P = () => S.p[S.deck];
+    const st = w => { const p = P()[w]; return !p ? "new" : p.b >= 5 ? "learned" : "learning" };
+    const today = () => S.log[dk()] || (S.log[dk()] = { n: 0, c: 0, nw: 0 });
+    function lastDay() { let m = ""; const t = dk(); for (const w in P()) { const f = P()[w].f; if (f && f < t && f > m) m = f } return m }
+    function olderCount() { const t = dk(), ld = lastDay(); let n = 0; for (const w in P()) { const p = P()[w]; if (p.b < 5 && p.f !== t && p.f !== ld && p.r !== t) n++ } return n }
+    function queue() {
+      const now = Date.now(), L = today(), due = [], nw = [];
+      const t = dk(), ld = lastDay(), older = S.older[t];
+      for (const x of words()) {
+        const p = P()[x[0]];
+        if (!p) nw.push(x);
+        else if (p.b < 5 && (older ? (p.d <= now || p.r !== t) : (p.f === t && p.d <= now) || (p.f === ld && (p.d <= now || p.r !== t)))) due.push(x)
+      }
+      due.sort((a, b) => P()[a[0]].d - P()[b[0]].d);
+      const left = Math.max(0, S.goal + (S.more[dk()] || 0) - L.nw);
+      return { due, nw: shuf(nw).slice(0, left), newTotal: nw.length };
+    }
+    let cur = null, flipped = false, answered = false, opts = [], wf = "all", wq = "", wshow = 60, open = null, confirmReset = false, backupVisible = false;
+    function pick() {
+      const q = queue(), a = q.due.concat(q.nw), b = a.filter(x => !cur || x[0] !== cur[0]);
+      cur = (b.length ? b : a)[0] || null; flipped = false; answered = false;
+      if (cur && S.tab === "quiz") {
+        const seen = new Set([cur[1]]);
+        const o = shuf(words().filter(x => x[0] !== cur[0])).filter(x => !seen.has(x[1]) && seen.add(x[1])).slice(0, 3);
+        opts = shuf(o.concat([cur]));
+      }
+    }
+    function rate(x, g) {
+      const w = x[0], L = today(), now = Date.now();
+      let p = P()[w];
+      if (!p) { p = P()[w] = { b: 0, d: now, s: 0, f: dk() }; L.nw++ }
+      p.r = dk(); L.n++; if (g > 0) L.c++;
+      if (g === 2) p.b = 5; else if (g === 1) p.b = Math.min(5, p.b + 1); else p.b = 0;
+      p.d = g === 0 ? now : now + INT[p.b];
+      save();
+    }
+    function streak() {
+      let n = 0, t = Date.now();
+      if (!(S.log[dk(t)] && S.log[dk(t)].n)) t -= DAY;
+      while (S.log[dk(t)] && S.log[dk(t)].n) { n++; t -= DAY }
+      return n;
+    }
+    function counts(k) {
+      const all = D[k].concat(S.extra[k]); let l = 0, g = 0;
+      all.forEach(x => { const p = S.p[k][x[0]]; if (p) { if (p.b >= 5) l++; else g++ } });
+      return { n: all.length, l, g, w: all.length - l - g };
+    }
+    function tabs() {
+      return [["study", "Study"], ["quiz", "Quiz"], ["words", "Words"], ["prog", "Progress"]].map(t => `<button class="${S.tab === t[0] ? "on" : ""}" data-tab="${t[0]}">${t[1]}</button>`).join("");
+    }
+    function head(q) {
+      const c = counts(S.deck), L = today(), tg = Math.min(S.goal + (S.more[dk()] || 0), L.nw + q.newTotal);
+      const tp = tg ? Math.min(100, L.nw / tg * 100) : 0, dp = c.n ? c.l / c.n * 100 : 0;
+      return `<div class="stats"><div><b>${q.due.length}</b>to review</div><div><b>${q.nw.length}</b>new today</div><div><b>${c.l}</b>learned</div></div>
+  <div class="prog"><div class="pl"><span>Today</span><span>${L.nw} / ${tg} new words</span></div><div class="bar"><i style="width:${tp}%;background:var(--amber)"></i></div></div>
+  <div class="prog"><div class="pl"><span>${NAMES[S.deck]}</span><span>${c.l} / ${c.n} learned</span></div><div class="bar"><i style="width:${dp}%"></i></div></div>`;
+    }
+    function doneView(q) {
+      const more = q.newTotal > 0;
+      return `<div class="done"><div class="word">All caught up</div><p>${today().n} answers today. Review only shows your previous study day's words that are not learned yet.</p>${olderCount() ? `<button class="btn gh" data-act="older">Practise ${olderCount()} older learning words</button>` : ""}${more ? `<button class="btn" data-act="more10">Learn 10 more new words</button>` : `<p>No new words left in ${NAMES[S.deck]}.</p>`}</div>`;
+    }
+    function vStudy() {
+      const q = queue(); let h = head(q);
+      if (!cur) return h + doneView(q);
+      const p = P()[cur[0]];
+      h += `<div class="card" data-act="flip" role="button" tabindex="0">
+    <button class="tool l" data-act="say" aria-label="Pronounce">🔊</button>
+    <button class="tool r ${p && p.s ? "on" : ""}" data-act="star" aria-label="Star">${p && p.s ? "★" : "☆"}</button>
+    ${flipped ? `<div class="def">${esc(cur[1])}</div><div class="hint">${esc(cur[0])}</div>` : `<div class="word">${esc(cur[0])}</div><div class="hint">${p ? "Seen before. " : "New word. "}Tap to see the meaning</div>`}</div>
+    <div class="act"><button class="btn no" data-act="g0" ${flipped ? "" : "disabled"}>Again</button><button class="btn" data-act="g1" ${flipped ? "" : "disabled"}>Good</button><button class="btn ok" data-act="g2" ${flipped ? "" : "disabled"}>Already know</button></div>`;
+      return h;
+    }
+    function vQuiz() {
+      const q = queue(); let h = head(q);
+      if (!cur) return h + doneView(q);
+      return h + `<div class="q"><div class="word">${esc(cur[0])}</div><div class="hint">Pick the meaning</div></div>` +
+        opts.map((o, i) => `<button class="opt" data-i="${i}">${esc(o[1])}</button>`).join("") +
+        `<div class="act" style="margin-top:12px"><button class="btn gh" data-act="say">🔊 Say it</button><button class="btn" data-act="next" ${answered ? "" : "disabled"}>Next word</button></div>`;
+    }
+    function vWords() {
+      const f = [["all", "All"], ["new", "New"], ["learning", "Learning"], ["learned", "Learned"], ["star", "★ Starred"]];
+      return `<div style="margin-top:14px"><input type="search" id="wsrch" placeholder="Search words or meanings" value="${esc(wq)}"></div>
+  <div class="chips">${f.map(x => `<button class="${wf === x[0] ? "on" : ""}" data-f="${x[0]}">${x[1]}</button>`).join("")}</div>
+  <div class="note" id="wc"></div><div id="wl"></div>`;
+    }
+    function fillList() {
+      const q = wq.toLowerCase();
+      const a = words().filter(x => {
+        const p = P()[x[0]];
+        const ok = wf === "all" || (wf === "star" ? p && p.s : st(x[0]) === wf);
+        return ok && (!q || x[0].includes(q) || x[1].toLowerCase().includes(q));
+      }).sort((x, y) => x[0] < y[0] ? -1 : 1);
+      $("wc").textContent = a.length + " words";
+      $("wl").innerHTML = a.slice(0, wshow).map(x => {
+        const w = x[0], p = P()[w], s = st(w), o = open === w;
+        return `<div class="wr ${o ? "open" : ""}" data-w="${esc(w)}"><div class="wt"><b>${esc(w)}${p && p.s ? " ★" : ""}</b><i class="dot ${s}"></i></div><div class="wd">${esc(x[1])}</div>${o ? `<div class="act"><button class="btn gh" data-act="say">🔊</button><button class="btn gh" data-act="wstar">${p && p.s ? "Unstar" : "Star"}</button><button class="btn ${s === "learned" ? "no" : "ok"}" data-act="${s === "learned" ? "wreset" : "wlearn"}">${s === "learned" ? "Unmark" : "Mark learned"}</button></div>` : ""}</div>`;
+      }).join("") + (a.length > wshow ? `<button class="link" data-act="showmore">Show more (${a.length - wshow})</button>` : "");
+    }
+    function vProg() {
+      const all = Object.keys(NAMES).map(k => [k, counts(k)]);
+      const tl = all.reduce((s, x) => s + x[1].l, 0), tn = all.reduce((s, x) => s + x[1].n, 0);
+      const days = [...Array(7)].map((_, i) => { const t = Date.now() - (6 - i) * DAY; return { l: new Date(t).toLocaleDateString("en", { weekday: "short" }).slice(0, 2), n: (S.log[dk(t)] || {}).n || 0 } });
+      const mx = Math.max(1, ...days.map(d => d.n)), L = today();
+      const acc = L.n ? Math.round(L.c / L.n * 100) + "%" : "–";
+      return `<div class="stats"><div><b>${streak()}</b>day streak</div><div><b>${L.n}</b>answers today</div><div><b>${acc}</b>accuracy</div></div>
+  <div class="box"><b>${tl}</b> of ${tn} words learned
+  ${all.map(([k, c]) => `<div style="margin-top:12px"><div style="font-weight:600">${NAMES[k]}</div><div class="stack" style="margin-top:4px"><i style="width:${c.l / c.n * 100}%;background:var(--mint)"></i><i style="width:${c.g / c.n * 100}%;background:var(--amber)"></i></div><div class="meta"><span>${c.l} learned</span><span>${c.g} learning</span><span>${c.w} new</span></div></div>`).join("")}</div>
+  <div class="sec">Last 7 days</div><div class="box"><div class="week">${days.map(d => `<div><i style="height:${d.n / mx * 60}px"></i>${d.l}</div>`).join("")}</div></div>
+  <div class="sec">Settings</div>
+  <div class="box"><label for="goal">New words per day</label><select id="goal">${GOALS.map(n => `<option ${S.goal === n ? "selected" : ""}>${n}</option>`).join("")}</select></div>
+  <div class="sec">Appearance</div>
+  <div class="box appearance-box">
+    <div class="appearance-row"><span class="appearance-label">Accent tint</span><div class="tint-options" role="group" aria-label="Accent tint">
+      <button class="tint-choice" type="button" data-accent-choice="blue" aria-pressed="false"><span class="swatch blue"></span>Blue</button>
+      <button class="tint-choice" type="button" data-accent-choice="green" aria-pressed="false"><span class="swatch green"></span>Green</button>
+    </div></div>
+    <div class="appearance-row"><span class="appearance-label">Theme</span><div class="mode-options" role="group" aria-label="Theme mode">
+      <button class="mode-choice" type="button" data-theme-choice="light" aria-pressed="false">Light</button>
+      <button class="mode-choice" type="button" data-theme-choice="dark" aria-pressed="false">Dark</button>
+    </div></div>
+  </div>
+  <div class="sec">Backup</div>
+  <div class="box"><label style="display:flex;gap:10px;align-items:center;font-weight:600"><input type="checkbox" id="auto" ${S.auto ? "checked" : ""} style="width:20px;height:20px"> Auto backup every 5 minutes and every time you open the app</label><p class="note">Latest progress is also saved to this browser's recovery storage after each change. It is not synced to other devices.</p><div id="bkbox"></div></div>
+  <div class="box"><p class="note" style="margin:0">Copy this text to save your progress, or paste a backup here and restore it.</p><textarea id="bk" ${backupVisible ? "" : "hidden"}></textarea><div class="act"><button class="btn gh" data-act="export">${backupVisible ? "Hide backup" : "Show backup"}</button><button class="btn gh" data-act="import">Restore</button></div></div>
+  <button class="link" data-act="reset">${confirmReset ? "Tap again to erase progress for " + NAMES[S.deck] : "Reset progress for " + NAMES[S.deck]}</button><div class="note" id="msg"></div>`;
+    }
+    function render() {
+      document.body.dataset.deck = S.deck;
+      syncThemeButton();
+      $("decks").innerHTML = Object.keys(NAMES).map(k => `<button class="pill ${S.deck === k ? "on" : ""}" data-d="${k}">${NAMES[k]}</button>`).join("");
+      $("tabs").innerHTML = tabs();
+      $("streak").textContent = "🔥 " + streak();
+      $("main").innerHTML = ({ study: vStudy, quiz: vQuiz, words: vWords, prog: vProg })[S.tab]();
+      if (S.tab === "words") fillList();
+      if (S.tab === "prog") { bkUI(); syncAppearanceControls() }
+    }
+    function syncThemeButton() {
+      const dark = document.documentElement.dataset.theme === "dark";
+      const accent = document.documentElement.dataset.accent === "green" ? "green" : "blue";
+      const label = dark ? "Switch to light theme" : "Switch to dark theme";
+      $("themeIcon").textContent = dark ? "☀" : "☾";
+      $("themeToggle").setAttribute("aria-label", label);
+      $("themeToggle").title = label;
+      $("theme-color-meta").content = dark ? (accent === "green" ? "#141b19" : "#141b24") : (accent === "green" ? "#f3f6f3" : "#f3f6fa");
+    }
+    function syncAppearanceControls() {
+      const accent = document.documentElement.dataset.accent || "blue";
+      const theme = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+      document.querySelectorAll("[data-accent-choice]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.accentChoice === accent)));
+      document.querySelectorAll("[data-theme-choice]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.themeChoice === theme)));
+    }
+    function setTheme(mode) {
+      const next = mode === "dark" ? "dark" : "light";
+      document.documentElement.dataset.theme = next;
+      try { localStorage.setItem("ws-theme", next) } catch (e) { }
+      syncThemeButton();
+      syncAppearanceControls();
+    }
+    function setAccent(tint) {
+      const next = tint === "green" ? "green" : "blue";
+      document.documentElement.dataset.accent = next;
+      try { localStorage.setItem("ws-accent", next) } catch (e) { }
+      syncThemeButton();
+      syncAppearanceControls();
+    }
+    function say(w) { try { const u = new SpeechSynthesisUtterance(w); u.lang = "en-US"; speechSynthesis.cancel(); speechSynthesis.speak(u) } catch (e) { } }
+    const find = w => words().find(x => x[0] === w);
+    function msg(t) { const m = $("msg"); if (m) m.textContent = t }
+    $("decks").onclick = e => { const d = e.target.dataset.d; if (d) { S.deck = d; cur = null; wshow = 60; open = null; save(); pick(); render() } };
+    $("tabs").onclick = e => { const t = e.target.dataset.tab; if (t) { S.tab = t; confirmReset = false; if (t === "study" || t === "quiz") { cur = null; pick() } save(); render(); scrollTo(0, 0) } };
+    $("themeToggle").onclick = () => {
+      setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+    };
+    $("main").oninput = e => { if (e.target.id === "wsrch") { wq = e.target.value.trim(); wshow = 60; fillList() } };
+    $("main").onchange = e => { if (e.target.id === "goal") { S.goal = +e.target.value; save(); cur = null; pick() } else if (e.target.id === "auto") { S.auto = e.target.checked; save(); if (S.auto) backup("auto on"); bkUI() } };
+    $("main").onclick = e => {
+      const b = e.target.closest("[data-act],[data-f],.wr,.opt,[data-theme-choice],[data-accent-choice]"); if (!b) return;
+      const a = b.dataset.act;
+      if (b.dataset.accentChoice) { setAccent(b.dataset.accentChoice); return }
+      if (b.dataset.themeChoice) { setTheme(b.dataset.themeChoice); return }
+      if (b.dataset.f) { wf = b.dataset.f; wshow = 60; render(); return }
+      if (b.classList.contains("opt")) {
+        if (answered) return; answered = true;
+        const ok = opts[+b.dataset.i][0] === cur[0]; rate(cur, ok ? 1 : 0);
+        [...document.querySelectorAll(".opt")].forEach((o, i) => { if (opts[i][0] === cur[0]) o.classList.add("ok"); else if (o === b) o.classList.add("bad") });
+        document.querySelector('[data-act="next"]').disabled = false; return;
+      }
+      if (b.classList.contains("wr") && !a) { const w = b.dataset.w; open = open === w ? null : w; fillList(); return }
+      const wr = b.closest(".wr"), w = wr ? wr.dataset.w : null;
+      if (a === "flip") { flipped = !flipped; render() }
+      else if (a === "say") { e.stopPropagation(); say(w || cur[0]) }
+      else if (a === "star") { e.stopPropagation(); const p = P()[cur[0]] || (P()[cur[0]] = { b: 0, d: Date.now(), s: 0, f: dk() }); p.s = p.s ? 0 : 1; save(); render() }
+      else if (a === "g0" || a === "g1" || a === "g2") { rate(cur, +a[1]); pick(); render() }
+      else if (a === "next") { pick(); render() }
+      else if (a === "more10") { S.more[dk()] = (S.more[dk()] || 0) + 10; save(); cur = null; pick(); render() }
+      else if (a === "older") { S.older[dk()] = 1; save(); cur = null; pick(); render() }
+      else if (a === "bknow") { backup("manual", 1) }
+      else if (a === "bkfile") { linkFile() }
+      else if (a === "bkresume") { resumeFile() }
+      else if (a === "bkrestore") { restoreSnap(+b.dataset.ts) }
+      else if (a === "showmore") { wshow += 60; fillList() }
+      else if (a === "wstar") { const p = P()[w] || (P()[w] = { b: 0, d: Date.now(), s: 0, f: dk() }); p.s = p.s ? 0 : 1; save(); fillList() }
+      else if (a === "wlearn") { const p = P()[w] || (P()[w] = { b: 0, d: Date.now(), s: 0, f: dk() }); p.b = 5; p.d = Date.now() + INT[5]; save(); fillList() }
+      else if (a === "wreset") { const p = P()[w]; if (p) { p.b = 0; p.d = Date.now() } save(); fillList() }
+      else if (a === "export") {
+        backupVisible = !backupVisible;
+        render();
+        if (backupVisible) {
+          const t = JSON.stringify(S); $("bk").value = t;
+          try { navigator.clipboard.writeText(t); msg("Backup shown and copied.") } catch (x) { msg("Backup shown. Select and copy it.") }
+        }
+      }
+      else if (a === "import") {
+        if (!backupVisible) { backupVisible = true; render(); $("bk").focus(); msg("Paste a backup here, then select Restore."); return }
+        try { const o = JSON.parse($("bk").value); if (!o.p || !o.extra) throw 0; backup("before restore"); applyState(o); msg("Progress restored.") }
+        catch (x) { msg("That text is not a valid backup.") }
+      }
+      else if (a === "reset") {
+        if (!confirmReset) { confirmReset = true; render() }
+        else { S.p[S.deck] = {}; confirmReset = false; save(); cur = null; pick(); render(); msg("Progress reset.") }
+      }
+    };
+    document.addEventListener("keydown", e => {
+      if (S.tab === "study" && cur && e.key === " " && e.target === document.body) { e.preventDefault(); flipped = !flipped; render() }
+    });
+    /* ===== Auto backup ===== */
+    const BK = { snaps: [], last: 0, fh: null, perm: false, fileTs: 0, busy: false };
+    const idb = () => BK.dbp || (BK.dbp = new Promise((res, rej) => { const r = indexedDB.open("wsbk", 1); r.onupgradeneeded = () => { r.result.createObjectStore("snaps", { keyPath: "ts" }); r.result.createObjectStore("kv") }; r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error) }));
+    const tx = (st, mode, fn) => idb().then(db => new Promise((res, rej) => { const t = db.transaction(st, mode), r = fn(t.objectStore(st)); t.oncomplete = () => res(r && r.result); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error) }));
+    let durableQueue = Promise.resolve();
+    durableSave = data => {
+      durableQueue = durableQueue.catch(() => { }).then(() => tx("kv", "readwrite", s => s.put({ ts: Date.now(), data }, "state"))).catch(() => { });
+      return durableQueue;
+    };
+    const hasData = o => o && o.p && (Object.keys(o.p.ws1 || {}).length || Object.keys(o.p.ws2 || {}).length || (o.extra && (o.extra.ws1.length || o.extra.ws2.length)));
+    function applyState(o) {
+      const keep = S.tab;
+      S = Object.assign({ deck: "ws1", tab: keep, goal: 100, gv: 2, more: {}, older: {}, auto: true, extra: { ws1: [], ws2: [] }, p: { ws1: {}, ws2: {} }, log: {} }, o);
+      S.tab = keep; mig(); save(); cur = null; pick(); render();
+    }
+    const fmt = t => new Date(t).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+    async function loadSnaps() { try { BK.snaps = (await tx("snaps", "readonly", s => s.getAll())).sort((a, b) => b.ts - a.ts) } catch (e) { BK.snaps = [] } }
+    async function backup(why, loud) {
+      if (BK.busy) return; BK.busy = true;
+      try {
+        const data = JSON.stringify(S);
+        await loadSnaps();
+        if (hasData(S) && (!BK.snaps[0] || BK.snaps[0].data !== data)) {
+          await tx("snaps", "readwrite", s => s.put({ ts: Date.now(), why, data }));
+          for (const o of BK.snaps.slice(29)) await tx("snaps", "readwrite", s => s.delete(o.ts));
+          await loadSnaps();
+        }
+        BK.last = Date.now(); await tx("kv", "readwrite", s => s.put(BK.last, "last"));
+        await fileWrite(data);
+        if (loud) msg("Backed up.");
+      } catch (e) { if (loud) msg("Backup failed: this browser blocked storage.") }
+      BK.busy = false; bkUI();
+    }
+    async function fileWrite(data) {
+      if (!BK.fh || !BK.perm) return;
+      try { const w = await BK.fh.createWritable(); await w.write(data); await w.close(); BK.fileTs = Date.now() } catch (e) { BK.perm = false }
+    }
+    async function linkFile() {
+      try {
+        BK.fh = await showSaveFilePicker({ suggestedName: "wordsmart-backup.json", types: [{ description: "Word Smart backup", accept: { "application/json": [".json"] } }] });
+        BK.perm = true; await tx("kv", "readwrite", s => s.put(BK.fh, "fh")); await fileWrite(JSON.stringify(S));
+      } catch (e) { }
+      bkUI();
+    }
+    async function resumeFile() { try { BK.perm = (await BK.fh.requestPermission({ mode: "readwrite" })) === "granted"; if (BK.perm) await fileWrite(JSON.stringify(S)) } catch (e) { } bkUI() }
+    async function restoreSnap(ts) {
+      const o = BK.snaps.find(x => x.ts === ts); if (!o) return;
+      if (!confirm("Restore the backup from " + fmt(ts) + "? Your current progress is saved as a backup first.")) return;
+      await backup("before restore");
+      try { applyState(JSON.parse(o.data)); msg("Restored backup from " + fmt(ts) + ".") } catch (e) { msg("That backup could not be read.") }
+    }
+    function bkUI() {
+      const b = $("bkbox"); if (!b) return;
+      const canFile = typeof window.showSaveFilePicker === "function";
+      let h = `<p class="note" style="margin:8px 0">${BK.last ? "Last backup: " + fmt(BK.last) + ". " : "No backup yet. "}${BK.snaps.length} saved cop${BK.snaps.length === 1 ? "y" : "ies"} kept on this device.</p><div class="act"><button class="btn gh" data-act="bknow">Back up now</button>${canFile && !BK.fh ? `<button class="btn gh" data-act="bkfile">Also save to a file</button>` : ""}${BK.fh && !BK.perm ? `<button class="btn gh" data-act="bkresume">Resume file backup</button>` : ""}</div>`;
+      if (BK.fh && BK.perm) h += `<p class="note" style="margin:8px 0">File backup is on${BK.fileTs ? " (last written " + fmt(BK.fileTs) + ")" : ""}.</p>`;
+      if (BK.snaps.length) h += `<div style="margin-top:8px">` + BK.snaps.slice(0, 6).map(o => `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line);font-size:14px"><span>${fmt(o.ts)} <span class="note">· ${esc(o.why)}</span></span><button class="btn gh" style="padding:6px 12px;min-height:0" data-act="bkrestore" data-ts="${o.ts}">Restore</button></div>`).join("") + `</div>`;
+      b.innerHTML = h;
+    }
+    async function bkInit() {
+      try {
+        BK.last = (await tx("kv", "readonly", s => s.get("last"))) || 0;
+        BK.fh = (await tx("kv", "readonly", s => s.get("fh"))) || null;
+        if (BK.fh) { try { BK.perm = (await BK.fh.queryPermission({ mode: "readwrite" })) === "granted" } catch (e) { } }
+        await loadSnaps();
+        if (!hadLS && !hasData(S)) {
+          let restored = false;
+          const latest = await tx("kv", "readonly", s => s.get("state"));
+          if (latest && latest.data) {
+            try { const o = JSON.parse(latest.data); if (o.p && o.extra) { applyState(o); msg("Your progress was restored from local recovery storage."); restored = true } } catch (e) { }
+          }
+          if (!restored) {
+            const o = BK.snaps.find(x => { try { return hasData(JSON.parse(x.data)) } catch (e) { return 0 } });
+            if (o) { applyState(JSON.parse(o.data)); msg("Your progress was restored from the latest automatic backup.") }
+          }
+        }
+        try { navigator.storage && navigator.storage.persist && navigator.storage.persist() } catch (e) { }
+        await durableSave(JSON.stringify(S));
+      } catch (e) { }
+      if (S.auto) await backup("app opened"); else bkUI();
+      setInterval(() => { if (S.auto) backup("every 5 min") }, 5 * MIN);
+      document.addEventListener("visibilitychange", () => {
+        if (!S.auto) return;
+        if (document.hidden) backup("app closed");
+        else if (Date.now() - BK.last > 5 * MIN) backup("app opened");
+      });
+      addEventListener("pagehide", () => { if (S.auto) backup("app closed") });
+    }
+    pick(); render();
+    bkInit();
+  </script>
+  <script>if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) navigator.serviceWorker.register('sw.js').catch(function () { });</script>
+</body>
+
+</html>
